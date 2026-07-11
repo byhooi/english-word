@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b57">
+  <title>单词探险岛｜五年级英语</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell" data-screen-label="单词学习主页">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="回到首页">
+        <span class="brand-mark" aria-hidden="true">Aa</span>
+        <span><strong>单词探险岛</strong><small>五年级英语 · 快乐开口说</small></span>
+      </a>
+      <div class="top-actions">
+        <button class="icon-button" id="voiceSettingsBtn" type="button" aria-label="发音设置">发音设置</button>
+        <button class="avatar" type="button" aria-label="学习者头像">小</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <p class="eyebrow">TODAY'S ADVENTURE</p>
+          <h1 id="heroTitle">今天，再认识<br><em>5 个新朋友</em></h1>
+          <p>听一听、读一读、猜一猜。每记住一个单词，探险船就会向前一步。</p>
+          <div class="hero-actions">
+            <button class="primary-button" id="startBtn" type="button">开始今日学习</button>
+            <button class="secondary-button" id="reviewBtn" type="button">复习收藏词</button>
+          </div>
+        </div>
+        <div class="route-card" aria-label="学习进度">
+          <div class="route-meta"><span>本册航线</span><strong id="overallProgressText">0 / 0</strong></div>
+          <div class="route-track"><div class="route-fill" id="routeFill"></div><span class="route-boat" id="routeBoat" aria-hidden="true">➤</span></div>
+          <div class="route-stops" id="routeStops"></div>
+          <p id="encourageText">从 Unit 1 出发吧，第一步最了不起！</p>
+        </div>
+      </section>
+
+      <section class="control-deck" aria-label="学习控制">
+        <div class="unit-tabs" id="unitTabs" role="tablist" aria-label="选择单元"></div>
+        <div class="mode-switch" role="group" aria-label="学习模式">
+          <button class="mode-button active" data-mode="learn" type="button">单词卡</button>
+          <button class="mode-button" data-mode="quiz" type="button">闯关测验</button>
+          <button class="mode-button" data-mode="list" type="button">全部词表</button>
+        </div>
+      </section>
+
+      <section id="learnView" class="learning-layout view active" aria-label="单词卡学习">
+        <aside class="session-panel">
+          <div><span class="panel-label">当前任务</span><h2 id="unitHeading">Unit 1</h2><p id="unitCount"></p></div>
+          <div class="session-stats">
+            <div><strong id="knownCount">0</strong><span>已掌握</span></div>
+            <div><strong id="savedCount">0</strong><span>收藏词</span></div>
+          </div>
+          <label class="toggle-row"><span><strong>自动朗读</strong><small>切换单词时播放</small></span><input id="autoSpeak" type="checkbox"><i></i></label>
+          <button class="shuffle-button" id="shuffleBtn" type="button">打乱顺序</button>
+        </aside>
+
+        <div class="flashcard-stage">
+          <div class="card-counter"><span id="cardPosition">1 / 1</span><div><button id="slowSpeakBtn" type="button">慢速</button><button id="speakBtn" type="button">朗读</button></div></div>
+          <article class="flashcard" id="flashcard" tabindex="0" aria-label="单词卡，点击翻面">
+            <div class="card-face card-front">
+              <button class="save-button" id="saveBtn" type="button" aria-label="收藏这个单词">☆</button>
+              <span class="word-type" id="wordType">WORD</span>
+              <h2 lang="en" id="wordText">go jogging</h2>
+              <p class="phonetic" id="phoneticText">点击喇叭听发音</p>
+              <button class="speaker-orb" id="cardSpeakBtn" type="button" aria-label="播放发音"><span aria-hidden="true">▶</span></button>
+              <p class="flip-hint">点击卡片查看中文</p>
+            </div>
+            <div class="card-face card-back">
+              <span class="word-type">MEANING</span>
+              <h2 id="meaningText">去慢跑</h2>
+              <p lang="en" id="backWord">go jogging</p>
+              <button class="example-speak" id="exampleSpeakBtn" type="button">再听一遍</button>
+              <p class="flip-hint">点击卡片返回英文</p>
+            </div>
+          </article>
+          <div class="card-actions">
+            <button class="nav-button" id="prevBtn" type="button">上一个</button>
+            <button class="master-button" id="masterBtn" type="button">我记住了</button>
+            <button class="nav-button" id="nextBtn" type="button">下一个</button>
+          </div>
+          <p class="keyboard-tip">键盘：← → 切换　空格翻卡　P 发音</p>
+        </div>
+      </section>
+
+      <section id="quizView" class="quiz-view view" aria-label="单词闯关测验">
+        <div class="quiz-header"><div><span class="panel-label">QUICK CHALLENGE</span><h2>三选一闯关</h2></div><div class="quiz-score"><strong id="quizScore">0</strong><span>连续答对</span></div></div>
+        <div class="quiz-card">
+          <p id="quizPromptLabel">请选择正确的中文意思</p>
+          <button class="quiz-word" id="quizSpeakBtn" type="button"><span id="quizWord">weekend</span><small>点击听发音</small></button>
+          <div class="answer-grid" id="answerGrid"></div>
+          <div class="quiz-feedback" id="quizFeedback" aria-live="polite"></div>
+          <button class="primary-button quiz-next" id="quizNextBtn" type="button">下一题</button>
+        </div>
+      </section>
+
+      <section id="listView" class="list-view view" aria-label="全部单词列表">
+        <div class="list-toolbar"><div><span class="panel-label">WORD LIBRARY</span><h2 id="listTitle">Unit 1 全部单词</h2></div><label class="search-box"><span>搜索</span><input id="searchInput" type="search" placeholder="输入英文或中文"></label></div>
+        <div class="word-grid" id="wordGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="voiceDialog">
+    <form method="dialog">
+      <div class="dialog-head"><div><span class="panel-label">VOICE</span><h2>发音设置</h2></div><button value="cancel" aria-label="关闭">×</button></div>
+      <label>口音<select id="accentSelect"><option value="en-US">美式英语</option><option value="en-GB">英式英语</option></select></label>
+      <label>语速<input id="rateRange" type="range" min="0.55" max="1.1" value="0.85" step="0.05"><output id="rateOutput">0.85×</output></label>
+      <p>发音由浏览器语音引擎提供，不需要上传录音。</p>
+      <button class="primary-button" value="confirm">完成</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
