@@ -16,7 +16,6 @@
       </a>
       <div class="top-actions">
         <button class="icon-button" id="voiceSettingsBtn" type="button" aria-label="发音设置">发音设置</button>
-        <button class="avatar" type="button" aria-label="学习者头像">小</button>
       </div>
     </header>
 
@@ -44,7 +43,7 @@
         <div class="mode-switch" role="group" aria-label="学习模式">
           <button class="mode-button active" data-mode="learn" type="button">单词卡</button>
           <button class="mode-button" data-mode="quiz" type="button">闯关测验</button>
-          <button class="mode-button" data-mode="dictation" type="button">&#x542C;&#x5199;&#x7EC3;&#x4E60;</button>
+          <button class="mode-button" data-mode="dictation" type="button">听写练习</button>
           <button class="mode-button" data-mode="list" type="button">全部词表</button>
         </div>
       </section>
@@ -99,23 +98,23 @@
         </div>
       </section>
 
-      <section id="dictationView" class="dictation-view view" aria-label="&#x5168;&#x518C;&#x987A;&#x5E8F;&#x542C;&#x5199;">
+      <section id="dictationView" class="dictation-view view" aria-label="全册顺序听写">
         <div class="dictation-header">
-          <div><span class="panel-label">LISTEN &amp; WRITE</span><h2 id="dictationTitle">&#x5168;&#x518C;&#x987A;&#x5E8F;&#x542C;&#x5199;</h2><p>&#x6240;&#x6709;&#x5355;&#x8BCD;&#x6309;&#x539F;&#x987A;&#x5E8F;&#xFF0C;&#x6BCF; 5 &#x4E2A;&#x4E00;&#x7EC4;&#x3002;&#x6BCF;&#x4E2A;&#x4E2D;&#x6587;&#x81EA;&#x52A8;&#x64AD;&#x62A5;&#x4E24;&#x904D;&#x3002;</p></div>
+          <div><span class="panel-label">LISTEN &amp; WRITE</span><h2 id="dictationTitle">全册顺序听写</h2><p>所有单词按原顺序，每 5 个一组。每个中文自动播报两遍。</p></div>
           <div class="dictation-settings">
-            <label>&#x5206;&#x7EC4;<select id="dictationGroupSelect"></select></label>
-            <label>&#x4E24;&#x904D;&#x95F4;&#x9694;<select id="dictationRepeatDelay"><option value="800">0.8 &#x79D2;</option><option value="1200" selected>1.2 &#x79D2;</option><option value="1800">1.8 &#x79D2;</option></select></label>
-            <label>&#x4E0B;&#x4E00;&#x8BCD;&#x7B49;&#x5F85;<select id="dictationNextDelay"><option value="3000">3 &#x79D2;</option><option value="5000" selected>5 &#x79D2;</option><option value="8000">8 &#x79D2;</option><option value="12000">12 &#x79D2;</option></select></label>
+            <label>分组<select id="dictationGroupSelect"></select></label>
+            <label>两遍间隔<select id="dictationRepeatDelay"><option value="800">0.8 秒</option><option value="1200" selected>1.2 秒</option><option value="1800">1.8 秒</option></select></label>
+            <label>下一词等待<select id="dictationNextDelay"><option value="3000">3 秒</option><option value="5000" selected>5 秒</option><option value="8000">8 秒</option><option value="12000">12 秒</option></select></label>
           </div>
         </div>
         <div class="dictation-card">
-          <div class="dictation-meta"><strong id="dictationGroupLabel">&#x7B2C; 1 &#x7EC4;</strong><span><i id="dictationStatus"></i><b id="dictationPosition">1 / 5</b></span></div>
+          <div class="dictation-meta"><strong id="dictationGroupLabel">第 1 组</strong><span><i id="dictationStatus"></i><b id="dictationPosition">1 / 5</b></span></div>
           <div class="dictation-progress" id="dictationProgress" aria-hidden="true"></div>
-          <button class="dictation-prompt" id="dictationSpeakBtn" type="button"><span id="dictationMeaning">&#x53BB;&#x6162;&#x8DD1;</span><small>&#x70B9;&#x51FB;&#x91CD;&#x542C;&#x4E24;&#x904D;</small></button>
-          <p class="dictation-hint">&#x542C;&#x4E2D;&#x6587;&#xFF0C;&#x5728;&#x7EB8;&#x4E0A;&#x5199;&#x51FA;&#x5BF9;&#x5E94;&#x82F1;&#x6587;</p>
-          <div class="dictation-answer" id="dictationAnswer" aria-live="polite"><span>&#x6B63;&#x786E;&#x7B54;&#x6848;</span><strong lang="en" id="dictationWord">go jogging</strong><button id="dictationEnglishSpeakBtn" type="button">&#x542C;&#x82F1;&#x6587;&#x53D1;&#x97F3;</button></div>
-          <div class="dictation-actions"><button class="nav-button" id="dictationPrevBtn" type="button">&#x4E0A;&#x4E00;&#x9898;</button><button class="master-button" id="dictationAutoBtn" type="button">&#x5F00;&#x59CB;&#x81EA;&#x52A8;&#x542C;&#x5199;</button><button class="nav-button" id="dictationNextBtn" type="button">&#x4E0B;&#x4E00;&#x9898;</button></div>
-          <div class="dictation-tool-row"><button id="dictationRepeatBtn" type="button">&#x91CD;&#x542C;&#x672C;&#x8BCD;</button><button id="dictationRevealBtn" type="button">&#x63ED;&#x6653;&#x7B54;&#x6848;</button><button id="dictationRestartBtn" type="button">&#x91CD;&#x6765;&#x672C;&#x7EC4;</button></div>
+          <button class="dictation-prompt" id="dictationSpeakBtn" type="button"><span id="dictationMeaning">去慢跑</span><small>点击重听两遍</small></button>
+          <p class="dictation-hint">听中文，在纸上写出对应英文</p>
+          <div class="dictation-answer" id="dictationAnswer" aria-live="polite"><span>正确答案</span><strong lang="en" id="dictationWord">go jogging</strong><button id="dictationEnglishSpeakBtn" type="button">听英文发音</button></div>
+          <div class="dictation-actions"><button class="nav-button" id="dictationPrevBtn" type="button">上一题</button><button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button><button class="nav-button" id="dictationNextBtn" type="button">下一题</button></div>
+          <div class="dictation-tool-row"><button id="dictationRepeatBtn" type="button">重听本词</button><button id="dictationRevealBtn" type="button">揭晓答案</button><button id="dictationRestartBtn" type="button">重来本组</button></div>
         </div>
       </section>
 
