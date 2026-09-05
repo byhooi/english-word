@@ -9,15 +9,18 @@
   const saved = new Set(loadIds("word-island-saved"));
   const mastered = new Set(loadIds("word-island-mastered"));
   const settings = JSON.parse(localStorage.getItem("word-island-settings") || "{}");
+  const totalDictationGroups = Math.ceil(allWords.length / 5);
+  const savedGroup = Number(settings.dictationGroup);
   let unitId = "u1", mode = "learn", index = 0, order = [], quizWord = null, quizScore = 0, answered = false;
-  let dictationGroup = 0, dictationIndex = 0, dictationRevealed = false, dictationRunning = false, dictationRunToken = 0;
+  let dictationGroup = Number.isInteger(savedGroup) && savedGroup >= 0 && savedGroup < totalDictationGroups ? savedGroup : 0;
+  let dictationIndex = 0, dictationRevealed = false, dictationRunning = false, dictationRunToken = 0;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const unit = () => units.find(item => item.id === unitId);
   const words = () => order.length ? order : unit().words;
   const current = () => words()[index] || words()[0];
   const persist = () => { localStorage.setItem("word-island-saved", JSON.stringify([...saved])); localStorage.setItem("word-island-mastered", JSON.stringify([...mastered])); };
-  const saveSettings = () => localStorage.setItem("word-island-settings", JSON.stringify({ accent: $("#accentSelect").value, rate: $("#rateRange").value, autoSpeak: $("#autoSpeak").checked, repeatDelay: $("#dictationRepeatDelay").value, nextDelay: $("#dictationNextDelay").value }));
+  const saveSettings = () => localStorage.setItem("word-island-settings", JSON.stringify({ accent: $("#accentSelect").value, rate: $("#rateRange").value, autoSpeak: $("#autoSpeak").checked, repeatDelay: $("#dictationRepeatDelay").value, nextDelay: $("#dictationNextDelay").value, dictationGroup }));
 
   // Chrome 的语音列表异步加载，首次 getVoices() 常为空，需监听 voiceschanged
   let voices = [];
@@ -218,10 +221,10 @@
     const group = groups[dictationGroup] || [];
     if (step > 0 && dictationIndex === group.length - 1) {
       if (dictationGroup === groups.length - 1) return toast("已经是最后一题了");
-      dictationGroup += 1; dictationIndex = 0;
+      dictationGroup += 1; dictationIndex = 0; saveSettings();
     } else if (step < 0 && dictationIndex === 0) {
       if (dictationGroup === 0) return toast("已经是第一题了");
-      dictationGroup -= 1; dictationIndex = groups[dictationGroup].length - 1;
+      dictationGroup -= 1; dictationIndex = groups[dictationGroup].length - 1; saveSettings();
     } else dictationIndex += step;
     renderDictation();
   }
@@ -239,7 +242,7 @@
   $("#shuffleBtn").addEventListener("click", () => { order = shuffle(unit().words); index = 0; renderCard(); toast("单词顺序已打乱"); });
   $("#answerGrid").addEventListener("click", e => { const b = e.target.closest(".answer-button"); if (b) answerQuiz(b); });
   $("#quizNextBtn").addEventListener("click", newQuiz); $("#quizSpeakBtn").addEventListener("click", () => speak(quizWord.en));
-  $("#dictationGroupSelect").addEventListener("change", e => { stopDictation(); dictationGroup = Number(e.target.value); dictationIndex = 0; renderDictation(); });
+  $("#dictationGroupSelect").addEventListener("change", e => { stopDictation(); dictationGroup = Number(e.target.value); dictationIndex = 0; saveSettings(); renderDictation(); });
   $("#dictationSpeakBtn").addEventListener("click", repeatCurrentDictation);
   $("#dictationRepeatBtn").addEventListener("click", repeatCurrentDictation);
   $("#dictationAutoBtn").addEventListener("click", startAutoDictation);
