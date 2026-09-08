@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b57">
+  <title>知识清单听写岛｜沪教牛津五上 · 常考短语与经典句型</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="zs.css">
+</head>
+<body>
+  <div class="app-shell" data-screen-label="知识清单听写主页">
+    <header class="topbar">
+      <a class="brand" href="zs.html" aria-label="知识清单听写主页">
+        <span class="brand-mark" style="background:#0277bd;" aria-hidden="true">Zs</span>
+        <span><strong>知识清单听写岛</strong><small>沪教牛津五上 · 常考短语与经典句型</small></span>
+      </a>
+      <div class="top-actions">
+        <a class="nav-link-btn" href="index.html" title="前往单词探险岛">🏝️ 单词卡主页</a>
+        <button class="icon-button" id="voiceSettingsBtn" type="button" aria-label="发音设置">发音设置</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="heroTitle" style="background:linear-gradient(135deg,#0d3859,#19527a);">
+        <div class="hero-copy">
+          <p class="eyebrow">KNOWLEDGE CHECKPOINT</p>
+          <h1 id="heroTitle">常考短语 & 经典句型<br><em>听写大通关</em></h1>
+          <p>听中文提示自动播报两遍，在纸上默写或屏幕练习。针对期中/期末知识清单，全面夯实短语积累与核心句型！</p>
+          <div class="hero-actions">
+            <button class="primary-button" onclick="document.querySelector('#dictationView').scrollIntoView({behavior:'smooth'})" type="button">开始纸上听写</button>
+            <button class="secondary-button" onclick="document.querySelector('[data-mode=typing]').click()" type="button">键盘打字默写</button>
+          </div>
+        </div>
+        <div class="route-card" aria-label="知识清单概览" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:white;">
+          <div class="route-meta"><span>清单容量</span><strong style="color:var(--yellow)">Unit 1 - Unit 8</strong></div>
+          <div style="margin:16px 0;line-height:1.8;font-size:15px;color:#d5e5f0;">
+            <div>✨ <strong>133</strong> 个常考短语 · 覆盖高频动词短语与固定搭配</div>
+            <div>🎯 <strong>111</strong> 个经典句型 · 涵盖时态、询问句与重点语法</div>
+            <div>🔊 原生语音自动播报 · 智能留出书写时间</div>
+          </div>
+          <p style="margin:0;color:var(--yellow);font-weight:700;">准备好铅笔与听写本，点击下方开始吧！</p>
+        </div>
+      </section>
+
+      <section class="control-deck" aria-label="听写控制台">
+        <div class="unit-tabs" id="unitTabs" role="tablist" aria-label="选择单元"></div>
+        <div class="mode-switch" role="group" aria-label="学习模式">
+          <button class="mode-button active" data-mode="dictation" type="button">📝 纸上听写</button>
+          <button class="mode-button" data-mode="typing" type="button">⌨️ 屏幕默写</button>
+          <button class="mode-button" data-mode="list" type="button">📋 清单一览</button>
+        </div>
+      </section>
+
+      <section class="filter-bar" aria-label="内容类型过滤">
+        <div class="type-filter-group" role="group" aria-label="过滤内容类型">
+          <button class="type-filter-btn active" data-type="all" type="button">全部内容</button>
+          <button class="type-filter-btn" data-type="phrase" type="button">💡 常考短语</button>
+          <button class="type-filter-btn" data-type="sentence" type="button">📖 经典句型</button>
+        </div>
+        <div class="scope-stats" id="scopeStats">加载中...</div>
+      </section>
+
+      <!-- 模式一：纸上听写模式 -->
+      <section id="dictationView" class="dictation-view view active" aria-label="全册顺序听写">
+        <div class="dictation-header">
+          <div>
+            <span class="panel-label">PAPER DICTATION</span>
+            <h2 id="dictationTitle">知识清单顺序听写</h2>
+            <p>每 5 项一组。每个中文自动播报两遍，预留充裕时间供孩子在纸上认真书写。</p>
+          </div>
+          <div class="dictation-settings">
+            <label>分组选择<select id="dictationGroupSelect"></select></label>
+            <label>两遍间隔
+              <select id="dictationRepeatDelay">
+                <option value="800">0.8 秒</option>
+                <option value="1200" selected>1.2 秒</option>
+                <option value="1800">1.8 秒</option>
+              </select>
+            </label>
+            <label>下一题书写等待
+              <select id="dictationNextDelay">
+                <option value="manual">手动点击 (不限时)</option>
+                <option value="5000">5 秒 (适合短语)</option>
+                <option value="8000">8 秒</option>
+                <option value="12000" selected>12 秒 (推荐写句子)</option>
+                <option value="18000">18 秒 (充裕书写)</option>
+                <option value="25000">25 秒</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="dictation-card">
+          <div class="dictation-meta">
+            <strong id="dictationGroupLabel">第 1 组</strong>
+            <span>
+              <i id="dictationStatus"></i>
+              <b id="dictationPosition">1 / 5</b>
+            </span>
+          </div>
+
+          <div class="dictation-progress" id="dictationProgress" aria-hidden="true"></div>
+
+          <div>
+            <span id="dictationTypeBadge" class="dictation-badge badge-phrase">常考短语</span>
+          </div>
+
+          <button class="dictation-prompt zs-dictation-prompt" id="dictationSpeakBtn" type="button">
+            <span id="dictationMeaning">加载中...</span>
+            <small>点击重听两遍 (快捷键 R)</small>
+          </button>
+
+          <p class="dictation-hint">听中文播报，在听写本上写出对应英文短语或句子</p>
+
+          <div class="dictation-answer" id="dictationAnswer" aria-live="polite">
+            <span>正确答案</span>
+            <strong lang="en" class="zs-answer-text" id="dictationWord"></strong>
+            <button id="dictationEnglishSpeakBtn" type="button">🔊 听英文标准发音 (P)</button>
+          </div>
+
+          <div class="dictation-actions">
+            <button class="nav-button" id="dictationPrevBtn" type="button">上一题 (←)</button>
+            <button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button>
+            <button class="nav-button" id="dictationNextBtn" type="button">下一题 (→)</button>
+          </div>
+
+          <div class="dictation-tool-row">
+            <button id="dictationRepeatBtn" type="button">🔁 重听本题</button>
+            <button id="dictationRevealBtn" type="button">👁️ 揭晓答案 (空格)</button>
+            <button id="dictationRestartBtn" type="button">⏮️ 重来本组</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 模式二：屏幕默写打字模式 -->
+      <section id="typingView" class="dictation-view view" aria-label="屏幕默写打字挑战">
+        <div class="dictation-header">
+          <div>
+            <span class="panel-label">KEYBOARD TYPING</span>
+            <h2>屏幕拼写大挑战</h2>
+            <p>看中文在键盘上敲出英文短语或句子，智能核对，锻炼英文拼写与句型书写。</p>
+          </div>
+          <div class="quiz-score">
+            <strong id="typingStreak">0</strong>
+            <span>连对记录</span>
+          </div>
+        </div>
+
+        <div class="dictation-card">
+          <div class="dictation-meta">
+            <span>题目进度</span>
+            <b id="typingPosition">1 / 5</b>
+          </div>
+
+          <div style="margin-top:14px;">
+            <span id="typingTypeBadge" class="dictation-badge badge-phrase">常考短语</span>
+          </div>
+
+          <div style="margin: 18px 0 24px;">
+            <h2 id="typingMeaning" style="font-size:clamp(24px, 4.5vw, 38px);margin:0;color:var(--navy);font-weight:900;"></h2>
+          </div>
+
+          <div class="typing-box">
+            <div class="typing-input-wrapper">
+              <input class="typing-input" id="typingInput" type="text" placeholder="在此输入英文拼写，按 Enter 提交" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+              <button class="typing-submit-btn" id="typingSubmitBtn" type="button">核对答案</button>
+            </div>
+            <div class="typing-result" id="typingResult"></div>
+          </div>
+
+          <div class="dictation-actions">
+            <button class="nav-button" id="typingPrevBtn" type="button">上一题</button>
+            <button class="secondary-button" id="typingSpeakBtn" type="button">🇨🇳 朗读中文</button>
+            <button class="nav-button" id="typingNextBtn" type="button">下一题</button>
+          </div>
+
+          <div class="dictation-tool-row">
+            <button id="typingRevealBtn" type="button">💡 不会写？查看提示</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 模式三：知识清单完整一览模式 -->
+      <section id="listView" class="zs-list-view view" aria-label="知识清单浏览一览">
+        <div class="list-toolbar">
+          <div>
+            <span class="panel-label">KNOWLEDGE REPOSITORY</span>
+            <h2 id="listTitle">知识清单对照表</h2>
+          </div>
+          <label class="search-box">
+            <span>快速搜索</span>
+            <input id="zsSearchInput" type="search" placeholder="输入英文单词、短语或中文释义...">
+          </label>
+        </div>
+        <div id="zsListContainer"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 发音设置弹窗 -->
+  <dialog id="voiceDialog">
+    <form method="dialog">
+      <div class="dialog-head">
+        <div>
+          <span class="panel-label">VOICE</span>
+          <h2>发音设置</h2>
+        </div>
+        <button value="cancel" aria-label="关闭">×</button>
+      </div>
+      <label>英语口音
+        <select id="accentSelect">
+          <option value="en-US">美式英语 (en-US)</option>
+          <option value="en-GB">英式英语 (en-GB)</option>
+        </select>
+      </label>
+      <label>英语语速
+        <input id="rateRange" type="range" min="0.45" max="1.1" value="0.70" step="0.05">
+        <output id="rateOutput">0.70×</output>
+      </label>
+      <p>发音由浏览器语音引擎 (SpeechSynthesis) 本地提供，中文采用普通话清晰朗读，无需联网上传录音。</p>
+      <button class="primary-button" value="confirm">完成</button>
+    </form>
+  </dialog>
+
+  <!-- 提示浮层 -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- 引入数据与业务逻辑 -->
+  <script src="zs_data.js"></script>
+  <script src="zs_app.js"></script>
+</body>
+</html>
