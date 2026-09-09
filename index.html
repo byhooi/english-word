@@ -45,29 +45,28 @@
 
         <div class="flashcard-stage">
           <div class="card-counter"><span id="cardPosition">1 / 1</span><div><button id="slowSpeakBtn" type="button">慢速</button><button id="speakBtn" type="button">朗读</button></div></div>
-          <article class="flashcard" id="flashcard" tabindex="0" aria-label="单词卡，点击翻面">
+          <article class="flashcard" id="flashcard" tabindex="0" aria-label="单词卡，点击翻面" title="点击卡片翻面（空格）">
             <div class="card-face card-front">
               <button class="save-button" id="saveBtn" type="button" aria-label="收藏这个单词">☆</button>
               <span class="word-type" id="wordType">WORD</span>
               <h2 lang="en" id="wordText">go jogging</h2>
               <p class="phonetic" id="phoneticText">点击喇叭听发音</p>
-              <button class="speaker-orb" id="cardSpeakBtn" type="button" aria-label="播放发音"><span aria-hidden="true">▶</span></button>
+              <button class="speaker-orb" id="cardSpeakBtn" type="button" aria-label="播放发音" title="播放发音（P）"><span aria-hidden="true">▶</span></button>
               <p class="flip-hint">点击卡片查看中文</p>
             </div>
             <div class="card-face card-back">
               <span class="word-type">MEANING</span>
               <h2 id="meaningText">去慢跑</h2>
               <p lang="en" id="backWord">go jogging</p>
-              <button class="example-speak" id="exampleSpeakBtn" type="button">再听一遍</button>
+              <button class="example-speak" id="exampleSpeakBtn" type="button" title="再听一遍（P）">再听一遍</button>
               <p class="flip-hint">点击卡片返回英文</p>
             </div>
           </article>
           <div class="card-actions">
-            <button class="nav-button" id="prevBtn" type="button">上一个</button>
+            <button class="nav-button" id="prevBtn" type="button" title="上一个（←）">上一个</button>
             <button class="master-button" id="masterBtn" type="button">我记住了</button>
-            <button class="nav-button" id="nextBtn" type="button">下一个</button>
+            <button class="nav-button" id="nextBtn" type="button" title="下一个（→）">下一个</button>
           </div>
-          <p class="keyboard-tip">键盘：← → 切换　空格翻卡　P 发音</p>
         </div>
       </section>
 
@@ -92,10 +91,10 @@
           </div>
         </div>
         <div class="flashcard-stage dictation-stage">
-          <div class="card-counter dictation-meta"><strong id="dictationGroupLabel">第 1 组</strong><span><i id="dictationStatus"></i><b id="dictationPosition">1 / 5</b></span></div>
+          <div class="card-counter dictation-meta"><strong id="dictationGroupLabel">第 1 组</strong><span><i id="dictationStatus"></i><b id="dictationPosition">1 / 5</b><button class="dictation-restart-btn" id="dictationRestartBtn" type="button" title="重来本组" aria-label="重来本组">↺</button></span></div>
           <div class="dictation-progress" id="dictationProgress" aria-hidden="true"></div>
 
-          <article class="flashcard dictation-flashcard" id="dictationFlashcard" tabindex="0" aria-label="中文题目，点击卡片查看英文">
+          <article class="flashcard dictation-flashcard" id="dictationFlashcard" tabindex="0" aria-label="中文题目，点击卡片查看英文" title="点击卡片翻转（空格）">
             <div class="card-face card-front" id="dictationFront" aria-hidden="false">
               <span class="word-type">中文提示</span>
               <h2 id="dictationMeaning">去慢跑</h2>
@@ -114,11 +113,6 @@
             <button class="nav-button" id="dictationPrevBtn" type="button" title="上一题（←）">上一题</button>
             <button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button>
             <button class="nav-button" id="dictationNextBtn" type="button" title="下一题（→）">下一题</button>
-          </div>
-          <div class="dictation-tool-row">
-            <button id="dictationRepeatBtn" type="button" title="重听本词（R）">重听本词</button>
-            <button id="dictationRevealBtn" type="button" title="翻转卡片（空格）" aria-controls="dictationAnswer" aria-expanded="false">查看英文</button>
-            <button id="dictationRestartBtn" type="button">重来本组</button>
           </div>
         </div>
       </section>

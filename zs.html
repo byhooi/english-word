@@ -75,12 +75,13 @@
             <span>
               <i id="dictationStatus"></i>
               <b id="dictationPosition">1 / 5</b>
+              <button class="dictation-restart-btn" id="dictationRestartBtn" type="button" title="重来本组" aria-label="重来本组">↺</button>
             </span>
           </div>
 
           <div class="dictation-progress" id="dictationProgress" aria-hidden="true"></div>
 
-          <article class="flashcard dictation-flashcard" id="dictationFlashcard" tabindex="0" aria-label="中文题目，点击卡片查看英文">
+          <article class="flashcard dictation-flashcard" id="dictationFlashcard" tabindex="0" aria-label="中文题目，点击卡片查看英文" title="点击卡片翻转（空格）">
             <div class="card-face card-front" id="dictationFront" aria-hidden="false">
               <span id="dictationTypeBadge" class="dictation-badge badge-phrase">常考短语</span>
               <h2 id="dictationMeaning">加载中...</h2>
@@ -99,12 +100,6 @@
             <button class="nav-button" id="dictationPrevBtn" type="button" title="上一题（←）">上一题</button>
             <button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button>
             <button class="nav-button" id="dictationNextBtn" type="button" title="下一题（→）">下一题</button>
-          </div>
-
-          <div class="dictation-tool-row">
-            <button id="dictationRepeatBtn" type="button" title="重听本题（R）">重听本题</button>
-            <button id="dictationRevealBtn" type="button" title="翻转卡片（空格）" aria-controls="dictationAnswer" aria-expanded="false">查看英文</button>
-            <button id="dictationRestartBtn" type="button">重来本组</button>
           </div>
         </div>
       </section>

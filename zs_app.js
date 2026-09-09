@@ -7,10 +7,7 @@
 
   const dictationCard = window.createFlashcard($("#dictationFlashcard"), {
     frontLabel: "中文题目，点击卡片查看英文",
-    backLabel: "英文答案，点击卡片返回中文",
-    toggleButton: $("#dictationRevealBtn"),
-    showBackText: "查看英文",
-    showFrontText: "返回中文"
+    backLabel: "英文答案，点击卡片返回中文"
   });
 
   // 状态变量
@@ -254,6 +251,11 @@
       stopDictation("已暂停");
       return;
     }
+    const group = dictationGroups[currentGroup] || [];
+    if (currentIndex >= group.length - 1) {
+      currentIndex = 0;
+      renderDictation();
+    }
     dictationRunning = true;
     const token = ++dictationRunToken;
     updateDictationStatus();
@@ -492,7 +494,6 @@
 
     // 听写发音与播放控制
     $("#dictationSpeakBtn").addEventListener("click", repeatCurrentDictation);
-    $("#dictationRepeatBtn").addEventListener("click", repeatCurrentDictation);
     $("#dictationAutoBtn").addEventListener("click", startAutoDictation);
     $("#dictationPrevBtn").addEventListener("click", () => moveDictation(-1));
     $("#dictationNextBtn").addEventListener("click", () => moveDictation(1));

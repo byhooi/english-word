@@ -584,12 +584,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.flashcard:focus-v
   color:white
 }
 
-.keyboard-tip {
-  font-size:12px;
-  color:var(--muted);
-  margin:18px 0 0
-}
-
 .quiz-view,.list-view {
   margin:0 clamp(16px,3vw,48px) 50px
 }
@@ -927,9 +921,6 @@ dialog p {
     grid-column:1/-1;
     grid-row:1
   }
-  .keyboard-tip {
-    display:none
-  }
   .answer-grid {
     grid-template-columns:1fr
   }
@@ -1144,21 +1135,29 @@ dialog p {
   margin-top:20px
 }
 
-.dictation-tool-row {
-  display:flex;
+.dictation-restart-btn {
+  display:inline-flex;
+  align-items:center;
   justify-content:center;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:12px
+  width:22px;
+  height:22px;
+  border:1px solid var(--line);
+  background:var(--paper);
+  color:var(--muted);
+  border-radius:6px;
+  font-size:13px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+  transition:all .15s ease;
+  vertical-align:middle;
 }
 
-.dictation-tool-row button {
-  border:1px solid var(--line);
+.dictation-restart-btn:hover {
+  color:var(--navy);
+  border-color:var(--blue);
   background:white;
-  border-radius:11px;
-  padding:9px 14px;
-  cursor:pointer;
-  font-weight:800
+  transform:rotate(-45deg);
 }
 
 @media(max-width:620px) {
@@ -1283,27 +1282,8 @@ dialog p {
   grid-row: auto;
 }
 
-.paper-dictation .dictation-tool-row {
-  width: min(100%, 650px);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.paper-dictation .dictation-tool-row button {
-  min-width: 0;
-  min-height: 44px;
-  padding: 8px 6px;
-  font-size: 14px;
-}
-
 @media (max-width: 620px) {
-  .paper-dictation .dictation-actions,
-  .paper-dictation .dictation-tool-row {
+  .paper-dictation .dictation-actions {
     gap: 6px;
-  }
-  .paper-dictation .dictation-tool-row button {
-    font-size: 13px;
   }
 }

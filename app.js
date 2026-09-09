@@ -22,10 +22,7 @@
   });
   const dictationCard = window.createFlashcard($("#dictationFlashcard"), {
     frontLabel: "中文题目，点击卡片查看英文",
-    backLabel: "英文答案，点击卡片返回中文",
-    toggleButton: $("#dictationRevealBtn"),
-    showBackText: "查看英文",
-    showFrontText: "返回中文"
+    backLabel: "英文答案，点击卡片返回中文"
   });
 
   const unit = () => units.find(item => item.id === unitId);
@@ -204,6 +201,11 @@
 
   async function startAutoDictation() {
     if (dictationRunning) return stopDictation("已暂停");
+    const group = dictationSets()[dictationGroup] || [];
+    if (dictationIndex >= group.length - 1) {
+      dictationIndex = 0;
+      renderDictation();
+    }
     dictationRunning = true;
     const token = ++dictationRunToken;
     updateDictationRunState();
@@ -266,7 +268,6 @@
   $("#quizNextBtn").addEventListener("click", newQuiz); $("#quizSpeakBtn").addEventListener("click", () => speak(quizWord.en));
   $("#dictationGroupSelect").addEventListener("change", e => { stopDictation(); dictationGroup = Number(e.target.value); dictationIndex = 0; saveSettings(); renderDictation(); });
   $("#dictationSpeakBtn").addEventListener("click", repeatCurrentDictation);
-  $("#dictationRepeatBtn").addEventListener("click", repeatCurrentDictation);
   $("#dictationAutoBtn").addEventListener("click", startAutoDictation);
   $("#dictationEnglishSpeakBtn").addEventListener("click", speakDictationEnglish);
   $("#dictationRestartBtn").addEventListener("click", () => { stopDictation(); dictationIndex = 0; renderDictation(); toast("已回到本组第一题"); });
