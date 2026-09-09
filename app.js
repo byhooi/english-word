@@ -59,7 +59,15 @@
   function renderCard(announce = false) {
     const w = current(); if (!w) return;
     learningCard.reset();
-    $("#wordText").textContent = w.en; $("#backWord").textContent = w.en; $("#meaningText").textContent = w.zh;
+    const wordEl = $("#wordText");
+    const meaningEl = $("#meaningText");
+    wordEl.textContent = w.en;
+    $("#backWord").textContent = w.en;
+    meaningEl.textContent = w.zh;
+    const len = w.en.length;
+    wordEl.classList.toggle("long-word", len > 12 && len <= 20);
+    wordEl.classList.toggle("xlong-word", len > 20);
+    meaningEl.classList.toggle("long-meaning", w.zh.length > 8);
     $("#wordType").textContent = w.star ? "CORE WORD · 重点词" : unit().theme.toUpperCase();
     $("#phoneticText").textContent = "点击播放标准发音";
     $("#cardPosition").textContent = `${index + 1} / ${words().length}`;
