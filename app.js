@@ -155,8 +155,10 @@
     const word = currentDictationWord();
     if (!word) return;
     dictationCard.reset();
-    $("#dictationGroupLabel").textContent = `第 ${dictationGroup + 1} 组 · ${dictationGroup * 5 + 1}–${dictationGroup * 5 + group.length}`;
-    $("#dictationPosition").textContent = `${dictationIndex + 1} / ${group.length}`;
+    const start = dictationGroup * 5 + 1;
+    const end = start + group.length - 1;
+    $("#dictationGroupLabel").textContent = `第 ${dictationGroup + 1} 组 · ${start}–${end}`;
+    $("#dictationPosition").textContent = `${start + dictationIndex} / ${end}`;
     $("#dictationMeaning").textContent = word.zh;
     $("#dictationWord").textContent = word.en;
     $("#dictationGroupSelect").innerHTML = groups.map((items, groupIndex) => `<option value="${groupIndex}" ${groupIndex === dictationGroup ? "selected" : ""}>第 ${groupIndex + 1} 组（${groupIndex * 5 + 1}–${groupIndex * 5 + items.length}）</option>`).join("");

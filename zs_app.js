@@ -154,7 +154,15 @@
     if (labelEl) labelEl.textContent = `第 ${currentGroup + 1} 组 / 共 ${dictationGroups.length} 组`;
 
     const posEl = $("#dictationPosition");
-    if (posEl) posEl.textContent = group.length ? `${currentIndex + 1} / ${group.length}` : "0 / 0";
+    if (posEl) {
+      if (!group.length) {
+        posEl.textContent = "0 / 0";
+      } else {
+        const start = currentGroup * 5 + 1;
+        const end = start + group.length - 1;
+        posEl.textContent = `${start + currentIndex} / ${end}`;
+      }
+    }
 
     // 进度圆点
     const progEl = $("#dictationProgress");
