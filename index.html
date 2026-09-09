@@ -21,24 +21,6 @@
     </header>
 
     <main>
-      <section class="hero" aria-labelledby="heroTitle">
-        <div class="hero-copy">
-          <p class="eyebrow">TODAY'S ADVENTURE</p>
-          <h1 id="heroTitle">今天，再认识<br><em>5 个新朋友</em></h1>
-          <p>听一听、读一读、猜一猜。每记住一个单词，探险船就会向前一步。</p>
-          <div class="hero-actions">
-            <button class="primary-button" id="startBtn" type="button">开始今日学习</button>
-            <button class="secondary-button" id="reviewBtn" type="button">复习收藏词</button>
-          </div>
-        </div>
-        <div class="route-card" aria-label="学习进度">
-          <div class="route-meta"><span>本册航线</span><strong id="overallProgressText">0 / 0</strong></div>
-          <div class="route-track"><div class="route-fill" id="routeFill"></div><span class="route-boat" id="routeBoat" aria-hidden="true">➤</span></div>
-          <div class="route-stops" id="routeStops"></div>
-          <p id="encourageText">从 Unit 1 出发吧，第一步最了不起！</p>
-        </div>
-      </section>
-
       <section class="control-deck" aria-label="学习控制">
         <div class="unit-tabs" id="unitTabs" role="tablist" aria-label="选择单元"></div>
         <div class="mode-switch" role="group" aria-label="学习模式">
@@ -58,6 +40,7 @@
           </div>
           <label class="toggle-row"><span><strong>自动朗读</strong><small>切换单词时播放</small></span><input id="autoSpeak" type="checkbox"><i></i></label>
           <button class="shuffle-button" id="shuffleBtn" type="button">打乱顺序</button>
+          <button class="nav-button" id="reviewBtn" type="button">复习收藏词</button>
         </aside>
 
         <div class="flashcard-stage">
@@ -99,7 +82,7 @@
         </div>
       </section>
 
-      <section id="dictationView" class="dictation-view view" aria-label="全册顺序听写">
+      <section id="dictationView" class="dictation-view paper-dictation view" aria-label="全册顺序听写">
         <div class="dictation-header">
           <div><span class="panel-label">LISTEN &amp; WRITE</span><h2 id="dictationTitle">全册顺序听写</h2><p>所有单词按原顺序，每 5 个一组。每个中文自动播报两遍。</p></div>
           <div class="dictation-settings">
@@ -108,14 +91,35 @@
             <label>下一词等待<select id="dictationNextDelay"><option value="3000">3 秒</option><option value="5000" selected>5 秒</option><option value="8000">8 秒</option><option value="12000">12 秒</option></select></label>
           </div>
         </div>
-        <div class="dictation-card">
-          <div class="dictation-meta"><strong id="dictationGroupLabel">第 1 组</strong><span><i id="dictationStatus"></i><b id="dictationPosition">1 / 5</b></span></div>
+        <div class="flashcard-stage dictation-stage">
+          <div class="card-counter dictation-meta"><strong id="dictationGroupLabel">第 1 组</strong><span><i id="dictationStatus"></i><b id="dictationPosition">1 / 5</b></span></div>
           <div class="dictation-progress" id="dictationProgress" aria-hidden="true"></div>
-          <button class="dictation-prompt" id="dictationSpeakBtn" type="button"><span id="dictationMeaning">去慢跑</span><small>点击重听两遍</small></button>
-          <p class="dictation-hint">听中文，在纸上写出对应英文</p>
-          <div class="dictation-answer" id="dictationAnswer" aria-live="polite"><span>正确答案</span><strong lang="en" id="dictationWord">go jogging</strong><button id="dictationEnglishSpeakBtn" type="button">听英文发音</button></div>
-          <div class="dictation-actions"><button class="nav-button" id="dictationPrevBtn" type="button">上一题</button><button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button><button class="nav-button" id="dictationNextBtn" type="button">下一题</button></div>
-          <div class="dictation-tool-row"><button id="dictationRepeatBtn" type="button">重听本词</button><button id="dictationRevealBtn" type="button">揭晓答案</button><button id="dictationRestartBtn" type="button">重来本组</button></div>
+
+          <article class="flashcard dictation-flashcard" id="dictationFlashcard" tabindex="0" aria-label="中文题目，点击卡片查看英文">
+            <div class="card-face card-front" id="dictationFront" aria-hidden="false">
+              <span class="word-type">中文提示</span>
+              <h2 id="dictationMeaning">去慢跑</h2>
+              <button class="speaker-orb" id="dictationSpeakBtn" type="button" aria-label="重听中文两遍" title="重听中文两遍（R）"><span aria-hidden="true">▶</span></button>
+              <p class="flip-hint">点击卡片查看英文</p>
+            </div>
+            <div class="card-face card-back" id="dictationAnswer" aria-hidden="true" aria-live="polite" inert>
+              <span class="word-type">英文答案</span>
+              <h2 lang="en" id="dictationWord">go jogging</h2>
+              <button class="example-speak" id="dictationEnglishSpeakBtn" type="button" title="听英文发音（P）">听英文发音</button>
+              <p class="flip-hint">点击卡片返回中文</p>
+            </div>
+          </article>
+
+          <div class="card-actions dictation-actions">
+            <button class="nav-button" id="dictationPrevBtn" type="button" title="上一题（←）">上一题</button>
+            <button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button>
+            <button class="nav-button" id="dictationNextBtn" type="button" title="下一题（→）">下一题</button>
+          </div>
+          <div class="dictation-tool-row">
+            <button id="dictationRepeatBtn" type="button" title="重听本词（R）">重听本词</button>
+            <button id="dictationRevealBtn" type="button" title="翻转卡片（空格）" aria-controls="dictationAnswer" aria-expanded="false">查看英文</button>
+            <button id="dictationRestartBtn" type="button">重来本组</button>
+          </div>
         </div>
       </section>
 
@@ -138,6 +142,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="words.js"></script>
+  <script src="flashcard.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

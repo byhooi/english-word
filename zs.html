@@ -22,32 +22,10 @@
     </header>
 
     <main>
-      <section class="hero" aria-labelledby="heroTitle" style="background:linear-gradient(135deg,#0d3859,#19527a);">
-        <div class="hero-copy">
-          <p class="eyebrow">KNOWLEDGE CHECKPOINT</p>
-          <h1 id="heroTitle">常考短语 & 经典句型<br><em>听写大通关</em></h1>
-          <p>听中文提示自动播报两遍，在纸上默写或屏幕练习。针对期中/期末知识清单，全面夯实短语积累与核心句型！</p>
-          <div class="hero-actions">
-            <button class="primary-button" onclick="document.querySelector('#dictationView').scrollIntoView({behavior:'smooth'})" type="button">开始纸上听写</button>
-            <button class="secondary-button" onclick="document.querySelector('[data-mode=typing]').click()" type="button">键盘打字默写</button>
-          </div>
-        </div>
-        <div class="route-card" aria-label="知识清单概览" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:white;">
-          <div class="route-meta"><span>清单容量</span><strong style="color:var(--yellow)">Unit 1 - Unit 8</strong></div>
-          <div style="margin:16px 0;line-height:1.8;font-size:15px;color:#d5e5f0;">
-            <div>✨ <strong>133</strong> 个常考短语 · 覆盖高频动词短语与固定搭配</div>
-            <div>🎯 <strong>111</strong> 个经典句型 · 涵盖时态、询问句与重点语法</div>
-            <div>🔊 原生语音自动播报 · 智能留出书写时间</div>
-          </div>
-          <p style="margin:0;color:var(--yellow);font-weight:700;">准备好铅笔与听写本，点击下方开始吧！</p>
-        </div>
-      </section>
-
       <section class="control-deck" aria-label="听写控制台">
         <div class="unit-tabs" id="unitTabs" role="tablist" aria-label="选择单元"></div>
         <div class="mode-switch" role="group" aria-label="学习模式">
           <button class="mode-button active" data-mode="dictation" type="button">📝 纸上听写</button>
-          <button class="mode-button" data-mode="typing" type="button">⌨️ 屏幕默写</button>
           <button class="mode-button" data-mode="list" type="button">📋 清单一览</button>
         </div>
       </section>
@@ -61,8 +39,8 @@
         <div class="scope-stats" id="scopeStats">加载中...</div>
       </section>
 
-      <!-- 模式一：纸上听写模式 -->
-      <section id="dictationView" class="dictation-view view active" aria-label="全册顺序听写">
+      <!-- 纸上听写 -->
+      <section id="dictationView" class="dictation-view paper-dictation view active" aria-label="全册顺序听写">
         <div class="dictation-header">
           <div>
             <span class="panel-label">PAPER DICTATION</span>
@@ -91,8 +69,8 @@
           </div>
         </div>
 
-        <div class="dictation-card">
-          <div class="dictation-meta">
+        <div class="flashcard-stage dictation-stage">
+          <div class="card-counter dictation-meta">
             <strong id="dictationGroupLabel">第 1 组</strong>
             <span>
               <i id="dictationStatus"></i>
@@ -102,86 +80,36 @@
 
           <div class="dictation-progress" id="dictationProgress" aria-hidden="true"></div>
 
-          <div>
-            <span id="dictationTypeBadge" class="dictation-badge badge-phrase">常考短语</span>
-          </div>
-
-          <button class="dictation-prompt zs-dictation-prompt" id="dictationSpeakBtn" type="button">
-            <span id="dictationMeaning">加载中...</span>
-            <small>点击重听两遍 (快捷键 R)</small>
-          </button>
-
-          <p class="dictation-hint">听中文播报，在听写本上写出对应英文短语或句子</p>
-
-          <div class="dictation-answer" id="dictationAnswer" aria-live="polite">
-            <span>正确答案</span>
-            <strong lang="en" class="zs-answer-text" id="dictationWord"></strong>
-            <button id="dictationEnglishSpeakBtn" type="button">🔊 听英文标准发音 (P)</button>
-          </div>
-
-          <div class="dictation-actions">
-            <button class="nav-button" id="dictationPrevBtn" type="button">上一题 (←)</button>
-            <button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button>
-            <button class="nav-button" id="dictationNextBtn" type="button">下一题 (→)</button>
-          </div>
-
-          <div class="dictation-tool-row">
-            <button id="dictationRepeatBtn" type="button">🔁 重听本题</button>
-            <button id="dictationRevealBtn" type="button">👁️ 揭晓答案 (空格)</button>
-            <button id="dictationRestartBtn" type="button">⏮️ 重来本组</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- 模式二：屏幕默写打字模式 -->
-      <section id="typingView" class="dictation-view view" aria-label="屏幕默写打字挑战">
-        <div class="dictation-header">
-          <div>
-            <span class="panel-label">KEYBOARD TYPING</span>
-            <h2>屏幕拼写大挑战</h2>
-            <p>看中文在键盘上敲出英文短语或句子，智能核对，锻炼英文拼写与句型书写。</p>
-          </div>
-          <div class="quiz-score">
-            <strong id="typingStreak">0</strong>
-            <span>连对记录</span>
-          </div>
-        </div>
-
-        <div class="dictation-card">
-          <div class="dictation-meta">
-            <span>题目进度</span>
-            <b id="typingPosition">1 / 5</b>
-          </div>
-
-          <div style="margin-top:14px;">
-            <span id="typingTypeBadge" class="dictation-badge badge-phrase">常考短语</span>
-          </div>
-
-          <div style="margin: 18px 0 24px;">
-            <h2 id="typingMeaning" style="font-size:clamp(24px, 4.5vw, 38px);margin:0;color:var(--navy);font-weight:900;"></h2>
-          </div>
-
-          <div class="typing-box">
-            <div class="typing-input-wrapper">
-              <input class="typing-input" id="typingInput" type="text" placeholder="在此输入英文拼写，按 Enter 提交" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-              <button class="typing-submit-btn" id="typingSubmitBtn" type="button">核对答案</button>
+          <article class="flashcard dictation-flashcard" id="dictationFlashcard" tabindex="0" aria-label="中文题目，点击卡片查看英文">
+            <div class="card-face card-front" id="dictationFront" aria-hidden="false">
+              <span id="dictationTypeBadge" class="dictation-badge badge-phrase">常考短语</span>
+              <h2 id="dictationMeaning">加载中...</h2>
+              <button class="speaker-orb" id="dictationSpeakBtn" type="button" aria-label="重听中文两遍" title="重听中文两遍（R）"><span aria-hidden="true">▶</span></button>
+              <p class="flip-hint">点击卡片查看英文</p>
             </div>
-            <div class="typing-result" id="typingResult"></div>
-          </div>
+            <div class="card-face card-back" id="dictationAnswer" aria-hidden="true" aria-live="polite" inert>
+              <span class="word-type">英文答案</span>
+              <h2 lang="en" id="dictationWord"></h2>
+              <button class="example-speak" id="dictationEnglishSpeakBtn" type="button" title="听英文发音（P）">听英文发音</button>
+              <p class="flip-hint">点击卡片返回中文</p>
+            </div>
+          </article>
 
-          <div class="dictation-actions">
-            <button class="nav-button" id="typingPrevBtn" type="button">上一题</button>
-            <button class="secondary-button" id="typingSpeakBtn" type="button">🇨🇳 朗读中文</button>
-            <button class="nav-button" id="typingNextBtn" type="button">下一题</button>
+          <div class="card-actions dictation-actions">
+            <button class="nav-button" id="dictationPrevBtn" type="button" title="上一题（←）">上一题</button>
+            <button class="master-button" id="dictationAutoBtn" type="button">开始自动听写</button>
+            <button class="nav-button" id="dictationNextBtn" type="button" title="下一题（→）">下一题</button>
           </div>
 
           <div class="dictation-tool-row">
-            <button id="typingRevealBtn" type="button">💡 不会写？查看提示</button>
+            <button id="dictationRepeatBtn" type="button" title="重听本题（R）">重听本题</button>
+            <button id="dictationRevealBtn" type="button" title="翻转卡片（空格）" aria-controls="dictationAnswer" aria-expanded="false">查看英文</button>
+            <button id="dictationRestartBtn" type="button">重来本组</button>
           </div>
         </div>
       </section>
 
-      <!-- 模式三：知识清单完整一览模式 -->
+      <!-- 清单一览 -->
       <section id="listView" class="zs-list-view view" aria-label="知识清单浏览一览">
         <div class="list-toolbar">
           <div>
@@ -228,6 +156,7 @@
 
   <!-- 引入数据与业务逻辑 -->
   <script src="zs_data.js"></script>
+  <script src="flashcard.js"></script>
   <script src="zs_app.js"></script>
 </body>
 </html>

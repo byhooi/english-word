@@ -1,14 +1,22 @@
-// zs_app.js - 知识清单听写与练习控制逻辑
+// zs_app.js - 知识清单听写与浏览控制逻辑
 (function () {
   "use strict";
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
+  const dictationCard = window.createFlashcard($("#dictationFlashcard"), {
+    frontLabel: "中文题目，点击卡片查看英文",
+    backLabel: "英文答案，点击卡片返回中文",
+    toggleButton: $("#dictationRevealBtn"),
+    showBackText: "查看英文",
+    showFrontText: "返回中文"
+  });
+
   // 状态变量
   let currentUnit = "u1"; // 默认 Unit 1
   let currentType = "all"; // 'all' | 'phrase' | 'sentence'
-  let currentMode = "dictation"; // 'dictation' | 'typing' | 'list'
+  let currentMode = "dictation"; // 纸上听写或清单一览
 
   let filteredItems = [];
   let dictationGroups = [];
@@ -17,10 +25,6 @@
 
   let dictationRunning = false;
   let dictationRunToken = 0;
-  let answerRevealed = false;
-
-  // 屏幕打字得分
-  let typingStreak = 0;
 
   // 发音设置
   const settingsKey = "zs_voice_settings_v1";
@@ -146,6 +150,7 @@
   function renderDictation() {
     const item = currentItem();
     const group = dictationGroups[currentGroup] || [];
+    dictationCard.reset();
 
     // 组标题与位置
     const labelEl = $("#dictationGroupLabel");
@@ -186,13 +191,14 @@
     const ansEl = $("#dictationWord");
     if (ansEl) ansEl.textContent = item.en;
 
-    // 恢复答案隐藏状态
-    answerRevealed = false;
-    $("#dictationAnswer").classList.remove("show");
-    const revealBtn = $("#dictationRevealBtn");
-    if (revealBtn) revealBtn.textContent = "揭晓答案";
-
     updateDictationStatus();
+  }
+
+  function speakDictationEnglish() {
+    const item = currentItem();
+    if (!item) return;
+    stopDictation();
+    speakEnglish(item.en);
   }
 
   function updateDictationStatus(text = "") {
@@ -318,89 +324,7 @@
     renderDictation();
   }
 
-  // 渲染屏幕打字练习 (Typing Mode)
-  function renderTypingView() {
-    const item = currentItem();
-    const group = dictationGroups[currentGroup] || [];
-
-    const posEl = $("#typingPosition");
-    if (posEl) posEl.textContent = `${currentIndex + 1} / ${group.length}`;
-
-    const scoreEl = $("#typingStreak");
-    if (scoreEl) scoreEl.textContent = String(typingStreak);
-
-    if (!item) return;
-
-    const badgeEl = $("#typingTypeBadge");
-    if (badgeEl) {
-      badgeEl.textContent = item.typeName;
-      badgeEl.className = `dictation-badge ${item.type === "phrase" ? "badge-phrase" : "badge-sentence"}`;
-    }
-
-    $("#typingMeaning").textContent = item.zh;
-    const input = $("#typingInput");
-    if (input) {
-      input.value = "";
-      input.focus();
-    }
-
-    const resultBox = $("#typingResult");
-    if (resultBox) {
-      resultBox.className = "typing-result";
-      resultBox.innerHTML = "";
-    }
-  }
-
-  // 打字核对算法（智能容错中英标点与大小写）
-  function checkTypingAnswer() {
-    const item = currentItem();
-    if (!item) return;
-
-    const input = $("#typingInput");
-    const userVal = input.value.trim();
-    const resultBox = $("#typingResult");
-
-    if (!userVal) {
-      toast("请输入你的拼写");
-      return;
-    }
-
-    const cleanUser = userVal.toLowerCase().replace(/[.,!?;:']/g, "").replace(/\s+/g, " ");
-    const cleanTarget = item.en.toLowerCase().replace(/[.,!?;:']/g, "").replace(/\s+/g, " ");
-
-    const isExact = userVal === item.en;
-    const isLooseMatch = cleanUser === cleanTarget;
-
-    if (isExact || isLooseMatch) {
-      typingStreak += 1;
-      $("#typingStreak").textContent = String(typingStreak);
-      speakEnglish(item.en);
-
-      resultBox.className = "typing-result show correct";
-      if (!isExact && isLooseMatch) {
-        resultBox.innerHTML = `<strong>🎉 回答正确！</strong> 但要注意大小写和标点符号哦：<br><span style="font-family:Georgia,serif;font-size:16px;">${item.en}</span>`;
-      } else {
-        resultBox.innerHTML = `<strong>🎉 完全正确！太棒了！</strong><br><span style="font-family:Georgia,serif;font-size:16px;">${item.en}</span>`;
-      }
-
-      // 1.5 秒后自动跳下一题
-      setTimeout(() => {
-        if (currentMode === "typing") {
-          moveDictation(1);
-          renderTypingView();
-        }
-      }, 1500);
-    } else {
-      typingStreak = 0;
-      $("#typingStreak").textContent = "0";
-      resultBox.className = "typing-result show wrong";
-      resultBox.innerHTML = `<strong>❌ 再试一次吧！</strong> 正确答案是：<br><strong style="font-family:Georgia,serif;font-size:17px;color:#a32727;">${item.en}</strong><button class="zs-btn-mini" id="typingHearAnswerBtn" style="margin-left:8px;" type="button">听发音</button>`;
-      const hearBtn = $("#typingHearAnswerBtn");
-      if (hearBtn) hearBtn.onclick = () => speakEnglish(item.en);
-    }
-  }
-
-  // 渲染知识清单一览模式 (List Mode)
+  // 渲染清单一览
   function renderListView() {
     const container = $("#zsListContainer");
     if (!container) return;
@@ -499,11 +423,9 @@
     currentMode = mode;
     $$(".mode-button").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
     $("#dictationView").classList.toggle("active", mode === "dictation");
-    $("#typingView").classList.toggle("active", mode === "typing");
     $("#listView").classList.toggle("active", mode === "list");
 
     if (mode === "dictation") renderDictation();
-    else if (mode === "typing") renderTypingView();
     else if (mode === "list") renderListView();
   }
 
@@ -516,7 +438,6 @@
     $$("#unitTabs button").forEach(b => b.classList.toggle("active", b.dataset.unit === unitId));
     refreshFilteredItems();
     if (currentMode === "dictation") renderDictation();
-    else if (currentMode === "typing") renderTypingView();
     else if (currentMode === "list") renderListView();
   }
 
@@ -529,7 +450,6 @@
     $$(".type-filter-btn").forEach(b => b.classList.toggle("active", b.dataset.type === type));
     refreshFilteredItems();
     if (currentMode === "dictation") renderDictation();
-    else if (currentMode === "typing") renderTypingView();
     else if (currentMode === "list") renderListView();
   }
 
@@ -570,25 +490,15 @@
       renderDictation();
     });
 
-    // 听写卡片交互
+    // 听写发音与播放控制
     $("#dictationSpeakBtn").addEventListener("click", repeatCurrentDictation);
     $("#dictationRepeatBtn").addEventListener("click", repeatCurrentDictation);
     $("#dictationAutoBtn").addEventListener("click", startAutoDictation);
     $("#dictationPrevBtn").addEventListener("click", () => moveDictation(-1));
     $("#dictationNextBtn").addEventListener("click", () => moveDictation(1));
 
-    // 听英文发音
-    $("#dictationEnglishSpeakBtn").addEventListener("click", () => {
-      const item = currentItem();
-      if (item) speakEnglish(item.en);
-    });
-
-    // 揭晓答案
-    $("#dictationRevealBtn").addEventListener("click", () => {
-      answerRevealed = !answerRevealed;
-      $("#dictationAnswer").classList.toggle("show", answerRevealed);
-      $("#dictationRevealBtn").textContent = answerRevealed ? "收起答案" : "揭晓答案";
-    });
+    // 发音与翻面相互独立
+    $("#dictationEnglishSpeakBtn").addEventListener("click", speakDictationEnglish);
 
     // 重来本组
     $("#dictationRestartBtn").addEventListener("click", () => {
@@ -596,35 +506,6 @@
       currentIndex = 0;
       renderDictation();
       toast("已重置到本组第一题");
-    });
-
-    // 打字模式交互
-    $("#typingSubmitBtn").addEventListener("click", checkTypingAnswer);
-    $("#typingInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        checkTypingAnswer();
-      }
-    });
-    $("#typingPrevBtn").addEventListener("click", () => {
-      moveDictation(-1);
-      renderTypingView();
-    });
-    $("#typingNextBtn").addEventListener("click", () => {
-      moveDictation(1);
-      renderTypingView();
-    });
-    $("#typingSpeakBtn").addEventListener("click", () => {
-      const item = currentItem();
-      if (item) speakChinese(item.zh);
-    });
-    $("#typingRevealBtn").addEventListener("click", () => {
-      const item = currentItem();
-      if (!item) return;
-      const resultBox = $("#typingResult");
-      resultBox.className = "typing-result show info";
-      resultBox.innerHTML = `<strong>提示答案：</strong><br><span style="font-family:Georgia,serif;font-size:16px;">${item.en}</span>`;
-      speakEnglish(item.en);
     });
 
     // 列表模式搜索与朗读
@@ -680,7 +561,9 @@
 
     // 键盘快捷键
     window.addEventListener("keydown", e => {
-      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest("input, select, textarea, [contenteditable]") || $("#voiceDialog").open) return;
       if (currentMode === "dictation") {
         if (e.key === "ArrowLeft") {
           e.preventDefault();
@@ -689,15 +572,15 @@
           e.preventDefault();
           moveDictation(1);
         } else if (e.key === " " || e.key === "Enter") {
+          if (target?.closest("button, a")) return;
           e.preventDefault();
-          $("#dictationRevealBtn").click();
+          if (!e.repeat) dictationCard.toggle();
         } else if (e.key.toLowerCase() === "r") {
           e.preventDefault();
           repeatCurrentDictation();
         } else if (e.key.toLowerCase() === "p") {
           e.preventDefault();
-          const item = currentItem();
-          if (item) speakEnglish(item.en);
+          speakDictationEnglish();
         }
       }
     });

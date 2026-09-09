@@ -13,9 +13,21 @@
   const savedGroup = Number(settings.dictationGroup);
   let unitId = "u1", mode = "learn", index = 0, order = [], quizWord = null, quizScore = 0, answered = false;
   let dictationGroup = Number.isInteger(savedGroup) && savedGroup >= 0 && savedGroup < totalDictationGroups ? savedGroup : 0;
-  let dictationIndex = 0, dictationRevealed = false, dictationRunning = false, dictationRunToken = 0;
+  let dictationIndex = 0, dictationRunning = false, dictationRunToken = 0;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
+  const learningCard = window.createFlashcard($("#flashcard"), {
+    frontLabel: "英文单词，点击卡片查看中文",
+    backLabel: "中文释义，点击卡片返回英文"
+  });
+  const dictationCard = window.createFlashcard($("#dictationFlashcard"), {
+    frontLabel: "中文题目，点击卡片查看英文",
+    backLabel: "英文答案，点击卡片返回中文",
+    toggleButton: $("#dictationRevealBtn"),
+    showBackText: "查看英文",
+    showFrontText: "返回中文"
+  });
+
   const unit = () => units.find(item => item.id === unitId);
   const words = () => order.length ? order : unit().words;
   const current = () => words()[index] || words()[0];
@@ -49,7 +61,7 @@
 
   function renderCard(announce = false) {
     const w = current(); if (!w) return;
-    $("#flashcard").classList.remove("flipped");
+    learningCard.reset();
     $("#wordText").textContent = w.en; $("#backWord").textContent = w.en; $("#meaningText").textContent = w.zh;
     $("#wordType").textContent = w.star ? "CORE WORD · 重点词" : unit().theme.toUpperCase();
     $("#phoneticText").textContent = "点击播放标准发音";
@@ -64,16 +76,22 @@
     $("#unitHeading").textContent = unit().label; $("#unitCount").textContent = `${unit().theme} · 共 ${unit().words.length} 个词`;
     $("#knownCount").textContent = currentIds.filter(id => mastered.has(id)).length;
     $("#savedCount").textContent = currentIds.filter(id => saved.has(id)).length;
-    const percent = allWords.length ? mastered.size / allWords.length * 100 : 0;
-    $("#overallProgressText").textContent = `${mastered.size} / ${allWords.length}`;
-    $("#routeFill").style.width = `${percent}%`; $("#routeBoat").style.left = `${percent}%`;
-    $("#encourageText").textContent = percent === 100 ? "全册通关！你已经环游了整座单词岛。" : percent > 50 ? "已经走过一半航程，坚持就是超能力！" : percent > 0 ? "探险船出发了，今天也在稳稳进步。" : "从 Unit 1 出发吧，第一步最了不起！";
-    $("#routeStops").innerHTML = units.map(u => `<span>${u.id === "proper" ? "名词" : u.label.replace("Unit ", "U")}</span>`).join("");
   }
 
   function changeUnit(nextId) { unitId = nextId; index = 0; order = []; renderTabs(); renderCard(); renderList(); newQuiz(); }
   function move(step) { index = (index + step + words().length) % words().length; renderCard(); }
-  function setMode(nextMode) { if (mode === "dictation" && nextMode !== "dictation") stopDictation(); mode = nextMode; $$(".mode-button").forEach(b => b.classList.toggle("active", b.dataset.mode === mode)); $$(".view").forEach(v => v.classList.remove("active")); $(`#${mode}View`).classList.add("active"); $(".control-deck").classList.toggle("dictation-mode", mode === "dictation"); if (mode === "quiz") newQuiz(); if (mode === "dictation") renderDictation(); if (mode === "list") renderList(); }
+  function setMode(nextMode) {
+    if (mode === "dictation" && nextMode !== "dictation") stopDictation();
+    mode = nextMode;
+    $$(".mode-button").forEach(button => button.classList.toggle("active", button.dataset.mode === mode));
+    $$(".view").forEach(view => view.classList.remove("active"));
+    $(`#${mode}View`).classList.add("active");
+    $(".control-deck").classList.toggle("dictation-mode", mode === "dictation");
+    if (mode === "learn") learningCard.reset();
+    if (mode === "quiz") newQuiz();
+    if (mode === "dictation") renderDictation();
+    if (mode === "list") renderList();
+  }
 
   function shuffle(list) {
     const items = [...list];
@@ -139,16 +157,21 @@
     const group = groups[dictationGroup] || [];
     const word = currentDictationWord();
     if (!word) return;
-    dictationRevealed = false;
+    dictationCard.reset();
     $("#dictationGroupLabel").textContent = `第 ${dictationGroup + 1} 组 · ${dictationGroup * 5 + 1}–${dictationGroup * 5 + group.length}`;
     $("#dictationPosition").textContent = `${dictationIndex + 1} / ${group.length}`;
     $("#dictationMeaning").textContent = word.zh;
     $("#dictationWord").textContent = word.en;
-    $("#dictationAnswer").classList.remove("show");
-    $("#dictationRevealBtn").textContent = "揭晓答案";
     $("#dictationGroupSelect").innerHTML = groups.map((items, groupIndex) => `<option value="${groupIndex}" ${groupIndex === dictationGroup ? "selected" : ""}>第 ${groupIndex + 1} 组（${groupIndex * 5 + 1}–${groupIndex * 5 + items.length}）</option>`).join("");
     $("#dictationProgress").innerHTML = group.map((item, itemIndex) => `<span class="${itemIndex < dictationIndex ? "done" : itemIndex === dictationIndex ? "current" : ""}"></span>`).join("");
     updateDictationRunState();
+  }
+
+  function speakDictationEnglish() {
+    const word = currentDictationWord();
+    if (!word) return;
+    stopDictation();
+    speak(word.en);
   }
 
   function dictationWait(milliseconds, token) {
@@ -236,7 +259,6 @@
   $("#prevBtn").addEventListener("click", () => move(-1)); $("#nextBtn").addEventListener("click", () => move(1));
   $("#speakBtn").addEventListener("click", () => speak(current().en)); $("#slowSpeakBtn").addEventListener("click", () => speak(current().en, true));
   $("#cardSpeakBtn").addEventListener("click", e => { e.stopPropagation(); speak(current().en); }); $("#exampleSpeakBtn").addEventListener("click", e => { e.stopPropagation(); speak(current().en); });
-  $("#flashcard").addEventListener("click", e => { if (!e.target.closest("button")) $("#flashcard").classList.toggle("flipped"); });
   $("#saveBtn").addEventListener("click", e => { e.stopPropagation(); const id = current().id; saved.has(id) ? saved.delete(id) : saved.add(id); persist(); renderCard(); toast(saved.has(id) ? "已加入收藏词" : "已取消收藏"); });
   $("#masterBtn").addEventListener("click", () => { const id = current().id; mastered.has(id) ? mastered.delete(id) : mastered.add(id); persist(); renderCard(); if (mastered.has(id)) { toast("记住啦，探险船前进了一步！"); setTimeout(() => move(1), 500); } });
   $("#shuffleBtn").addEventListener("click", () => { order = shuffle(unit().words); index = 0; renderCard(); toast("单词顺序已打乱"); });
@@ -246,17 +268,38 @@
   $("#dictationSpeakBtn").addEventListener("click", repeatCurrentDictation);
   $("#dictationRepeatBtn").addEventListener("click", repeatCurrentDictation);
   $("#dictationAutoBtn").addEventListener("click", startAutoDictation);
-  $("#dictationEnglishSpeakBtn").addEventListener("click", () => { stopDictation(); speak(currentDictationWord().en); });
-  $("#dictationRevealBtn").addEventListener("click", () => { dictationRevealed = !dictationRevealed; $("#dictationAnswer").classList.toggle("show", dictationRevealed); $("#dictationRevealBtn").textContent = dictationRevealed ? "收起答案" : "揭晓答案"; });
+  $("#dictationEnglishSpeakBtn").addEventListener("click", speakDictationEnglish);
   $("#dictationRestartBtn").addEventListener("click", () => { stopDictation(); dictationIndex = 0; renderDictation(); toast("已回到本组第一题"); });
   $("#dictationPrevBtn").addEventListener("click", () => moveDictation(-1)); $("#dictationNextBtn").addEventListener("click", () => moveDictation(1));
   $("#searchInput").addEventListener("input", renderList); $("#wordGrid").addEventListener("click", e => { const b = e.target.closest("[data-speak]"); if (b) speak(decodeURIComponent(b.dataset.speak)); });
   $("#voiceSettingsBtn").addEventListener("click", () => $("#voiceDialog").showModal()); $("#rateRange").addEventListener("input", e => { $("#rateOutput").textContent = `${Number(e.target.value).toFixed(2)}×`; saveSettings(); });
   $("#accentSelect").addEventListener("change", saveSettings); $("#autoSpeak").addEventListener("change", saveSettings);
   $("#dictationRepeatDelay").addEventListener("change", saveSettings); $("#dictationNextDelay").addEventListener("change", saveSettings);
-  $("#startBtn").addEventListener("click", () => { setMode("learn"); $("#learnView").scrollIntoView({behavior:"smooth"}); renderCard(true); });
   $("#reviewBtn").addEventListener("click", () => { const collection = allWords.filter(w => saved.has(w.id)); if (!collection.length) return toast("先在单词卡右上角收藏几个难词吧"); const first = collection[0]; unitId = first.unitId; order = collection.filter(w => w.unitId === unitId); index = 0; renderTabs(); setMode("learn"); renderCard(); $("#learnView").scrollIntoView({behavior:"smooth"}); });
-  document.addEventListener("keydown", e => { if (e.target.matches("input,select") || mode !== "learn") return; if (e.key === "ArrowRight") move(1); if (e.key === "ArrowLeft") move(-1); if (e.code === "Space") { e.preventDefault(); $("#flashcard").classList.toggle("flipped"); } if (e.key.toLowerCase() === "p") speak(current().en); });
+  document.addEventListener("keydown", event => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest("input, select, textarea, [contenteditable]") || $("#voiceDialog").open) return;
+    if (mode !== "learn" && mode !== "dictation") return;
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      const step = event.key === "ArrowLeft" ? -1 : 1;
+      if (mode === "learn") move(step);
+      else moveDictation(step);
+    } else if (event.key === " " || event.key === "Enter") {
+      if (target?.closest("button, a")) return;
+      event.preventDefault();
+      if (!event.repeat) (mode === "learn" ? learningCard : dictationCard).toggle();
+    } else if (event.key.toLowerCase() === "p") {
+      event.preventDefault();
+      if (mode === "learn") speak(current().en);
+      else speakDictationEnglish();
+    } else if (event.key.toLowerCase() === "r" && mode === "dictation") {
+      event.preventDefault();
+      repeatCurrentDictation();
+    }
+  });
 
   if (settings.accent) $("#accentSelect").value = settings.accent;
   if (settings.rate) $("#rateRange").value = settings.rate;

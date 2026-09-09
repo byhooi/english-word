@@ -1190,3 +1190,120 @@ dialog p {
     min-width:max-content
   }
 }
+
+/* 两个听写页面共用卡片尺寸、排版与控制布局。 */
+.paper-dictation .dictation-header {
+  gap: 16px;
+  margin: 20px 0 14px;
+}
+
+.paper-dictation .dictation-header h2 {
+  font-size: clamp(22px, 2.2vw, 28px);
+}
+
+.paper-dictation .dictation-header p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dictation-stage {
+  max-width: 780px;
+  margin: auto;
+}
+
+.paper-dictation .dictation-meta {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 14px;
+}
+
+.paper-dictation .dictation-meta > span {
+  max-width: 100%;
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px 10px;
+  text-align: right;
+}
+
+.paper-dictation .dictation-meta b {
+  white-space: nowrap;
+}
+
+.paper-dictation .dictation-progress {
+  width: min(100%, 650px);
+  gap: 6px;
+  margin: 12px 0 0;
+}
+
+.paper-dictation .dictation-badge {
+  margin-bottom: 8px;
+}
+
+/* 沿用 styles.css 的翻转动画和固定高度，仅适配较长的短语与句型。 */
+.dictation-flashcard .card-face h2 {
+  font-size: clamp(24px, 3.4vw, 36px);
+  line-height: 1.35;
+  margin: 16px 0 8px;
+  text-wrap: pretty;
+}
+
+.dictation-flashcard .card-front h2 {
+  font-family: inherit;
+}
+
+.dictation-flashcard .card-back h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(20px, 2.8vw, 32px);
+}
+
+.dictation-flashcard .flip-hint {
+  margin: 0;
+}
+
+.dictation-flashcard .example-speak {
+  min-height: 44px;
+}
+
+.paper-dictation .dictation-actions {
+  margin-top: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.paper-dictation .dictation-actions button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 8px;
+  font-size: 14px;
+}
+
+.paper-dictation .dictation-actions .master-button {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.paper-dictation .dictation-tool-row {
+  width: min(100%, 650px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.paper-dictation .dictation-tool-row button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 6px;
+  font-size: 14px;
+}
+
+@media (max-width: 620px) {
+  .paper-dictation .dictation-actions,
+  .paper-dictation .dictation-tool-row {
+    gap: 6px;
+  }
+  .paper-dictation .dictation-tool-row button {
+    font-size: 13px;
+  }
+}

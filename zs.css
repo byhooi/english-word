@@ -83,17 +83,6 @@
   margin: 0 3px;
 }
 
-/* 听写卡片句型特殊适配：中文和英文可能较长 */
-.zs-dictation-prompt span {
-  font-weight: 900;
-  font-size: clamp(22px, 4.2vw, 42px) !important;
-  line-height: 1.45 !important;
-  text-align: center;
-  max-width: 90%;
-  margin: auto;
-  word-break: break-word;
-}
-
 .dictation-badge {
   display: inline-block;
   font-size: 12px;
@@ -114,96 +103,6 @@
   background: #fff3e0;
   color: #e65100;
   border: 1px solid #ffe0b2;
-}
-
-.zs-answer-text {
-  font: 700 clamp(20px, 3.8vw, 32px)/1.35 Georgia, serif !important;
-  text-align: center;
-  max-width: 92%;
-  margin: 4px auto 12px;
-  word-break: break-word;
-}
-
-/* 屏幕默写/打字模式 (Typing Mode) */
-.typing-box {
-  margin: 20px auto;
-  max-width: 600px;
-  text-align: left;
-}
-
-.typing-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: white;
-  border: 2px solid var(--line);
-  border-radius: 16px;
-  padding: 6px 12px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, .04);
-  transition: border-color .2s, box-shadow .2s;
-}
-
-.typing-input-wrapper:focus-within {
-  border-color: var(--navy);
-  box-shadow: 0 0 0 4px rgba(23, 59, 87, .12);
-}
-
-.typing-input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  font-family: inherit;
-  color: var(--ink);
-  padding: 8px 6px;
-  outline: none;
-}
-
-.typing-submit-btn {
-  border: none;
-  background: var(--navy);
-  color: white;
-  padding: 8px 18px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity .2s;
-}
-
-.typing-submit-btn:hover {
-  opacity: .9;
-}
-
-.typing-result {
-  margin-top: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-size: 15px;
-  display: none;
-  animation: fadeIn .2s ease-in;
-}
-
-.typing-result.show {
-  display: block;
-}
-
-.typing-result.correct {
-  background: #e8f8f2;
-  color: #1b6849;
-  border: 1px solid #b7ebd5;
-}
-
-.typing-result.wrong {
-  background: #fdf2f2;
-  color: #a32727;
-  border: 1px solid #f8c9c9;
-}
-
-.typing-result.info {
-  background: #eaf3fd;
-  color: #174b88;
-  border: 1px solid #bfdcfb;
 }
 
 /* 知识清单表格与列表视图 */
@@ -306,11 +205,6 @@
 .zs-btn-mini:hover {
   background: #f0f4f5;
   color: var(--navy);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 @media(max-width: 620px) {
