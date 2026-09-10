@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173b57">
-  <title>知识清单听写岛｜沪教牛津五上 · 常考短语与经典句型</title>
+  <title>知识清单听写｜沪教牛津五上 · 常考短语与经典句型</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="zs.css">
 </head>
@@ -13,10 +13,11 @@
     <header class="topbar">
       <a class="brand" href="zs.html" aria-label="知识清单听写主页">
         <span class="brand-mark" style="background:#0277bd;" aria-hidden="true">Zs</span>
-        <span><strong>知识清单听写岛</strong><small>沪教牛津五上 · 常考短语与经典句型</small></span>
+        <span><strong>知识清单听写</strong><small>沪教牛津五上 · 常考短语与经典句型</small></span>
       </a>
       <div class="top-actions">
         <a class="nav-link-btn" href="index.html" title="前往单词探险岛">🏝️ 单词卡主页</a>
+        <button class="icon-button" id="printSheetBtn" type="button" title="打印当前单元的听写答题纸（不含答案）">🖨️ 打印答题纸</button>
         <button class="icon-button" id="voiceSettingsBtn" type="button" aria-label="发音设置">发音设置</button>
       </div>
     </header>
@@ -32,8 +33,8 @@
 
       <section class="filter-bar" aria-label="内容类型过滤">
         <div class="type-filter-group" role="group" aria-label="过滤内容类型">
-          <button class="type-filter-btn active" data-type="all" type="button">全部内容</button>
-          <button class="type-filter-btn" data-type="phrase" type="button">💡 常考短语</button>
+          <button class="type-filter-btn" data-type="all" type="button">全部内容</button>
+          <button class="type-filter-btn active" data-type="phrase" type="button">💡 常考短语</button>
           <button class="type-filter-btn" data-type="sentence" type="button">📖 经典句型</button>
         </div>
         <div class="scope-stats" id="scopeStats">加载中...</div>
@@ -45,24 +46,30 @@
           <div>
             <span class="panel-label">PAPER DICTATION</span>
             <h2 id="dictationTitle">知识清单顺序听写</h2>
-            <p>每 5 项一组。每个中文自动播报两遍，预留充裕时间供孩子在纸上认真书写。</p>
+            <p>每个中文自动播报两遍，预留时间在纸上书写。短语和句型各记一套分组大小与书写等待；选“全部内容”时按句型分组，等待时间按每题类型自动切换。</p>
           </div>
           <div class="dictation-settings">
-            <label>分组选择<select id="dictationGroupSelect"></select></label>
-            <label>两遍间隔
+            <label><span>分组选择</span><select id="dictationGroupSelect"></select></label>
+            <label><span id="groupSizeLabel">分组大小</span>
+              <select id="dictationGroupSize">
+                <option value="5">5 题一组</option>
+                <option value="10">10 题一组</option>
+              </select>
+            </label>
+            <label><span>两遍间隔</span>
               <select id="dictationRepeatDelay">
                 <option value="800">0.8 秒</option>
                 <option value="1200" selected>1.2 秒</option>
                 <option value="1800">1.8 秒</option>
               </select>
             </label>
-            <label>下一题书写等待
+            <label><span id="nextDelayLabel">书写等待</span>
               <select id="dictationNextDelay">
                 <option value="manual">手动点击 (不限时)</option>
-                <option value="5000">5 秒 (适合短语)</option>
+                <option value="5000">5 秒</option>
                 <option value="8000">8 秒</option>
-                <option value="12000" selected>12 秒 (推荐写句子)</option>
-                <option value="18000">18 秒 (充裕书写)</option>
+                <option value="12000">12 秒</option>
+                <option value="18000">18 秒</option>
                 <option value="25000">25 秒</option>
               </select>
             </label>
@@ -121,6 +128,9 @@
     </main>
   </div>
 
+  <!-- 打印答题纸：仅在打印时显示，由 zs_app.js 按单元生成 -->
+  <section class="print-sheet" id="printSheet" aria-hidden="true"></section>
+
   <!-- 发音设置弹窗 -->
   <dialog id="voiceDialog">
     <form method="dialog">
@@ -141,7 +151,7 @@
         <input id="rateRange" type="range" min="0.45" max="1.1" value="0.70" step="0.05">
         <output id="rateOutput">0.70×</output>
       </label>
-      <p>发音由浏览器语音引擎 (SpeechSynthesis) 本地提供，中文采用普通话清晰朗读，无需联网上传录音。</p>
+      <p>发音由浏览器语音引擎 (SpeechSynthesis) 本地提供，中文采用普通话清晰朗读，无需联网上传录音。口音与语速设置和单词卡页面共用。</p>
       <button class="primary-button" value="confirm">完成</button>
     </form>
   </dialog>
@@ -151,7 +161,9 @@
 
   <!-- 引入数据与业务逻辑 -->
   <script src="zs_data.js"></script>
+  <script src="speech.js"></script>
   <script src="flashcard.js"></script>
+  <script src="dictation.js"></script>
   <script src="zs_app.js"></script>
 </body>
 </html>

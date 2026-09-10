@@ -1,4 +1,5 @@
 (() => {
+  const Speech = window.Speech;
   const units = window.WORD_UNITS;
   const allWords = units.flatMap(unit => unit.words.map(word => ({...word, unitId: unit.id, unitLabel: unit.label})));
   const validIds = new Set(allWords.map(word => word.id));
@@ -8,12 +9,9 @@
   const loadIds = key => JSON.parse(localStorage.getItem(key) || "[]").map(id => legacyIdMap.get(id) || id).filter(id => validIds.has(id));
   const saved = new Set(loadIds("word-island-saved"));
   const mastered = new Set(loadIds("word-island-mastered"));
-  const settings = JSON.parse(localStorage.getItem("word-island-settings") || "{}");
-  const totalDictationGroups = Math.ceil(allWords.length / 5);
-  const savedGroup = Number(settings.dictationGroup);
+  const settings = Speech.loadSettings();
   let unitId = "u1", mode = "learn", index = 0, order = [], quizWord = null, quizScore = 0, answered = false;
-  let dictationGroup = Number.isInteger(savedGroup) && savedGroup >= 0 && savedGroup < totalDictationGroups ? savedGroup : 0;
-  let dictationIndex = 0, dictationRunning = false, dictationRunToken = 0;
+  let dictationGroup = Number.isInteger(Number(settings.dictationGroup)) ? Number(settings.dictationGroup) : 0;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const learningCard = window.createFlashcard($("#flashcard"), {
@@ -29,27 +27,13 @@
   const words = () => order.length ? order : unit().words;
   const current = () => words()[index] || words()[0];
   const persist = () => { localStorage.setItem("word-island-saved", JSON.stringify([...saved])); localStorage.setItem("word-island-mastered", JSON.stringify([...mastered])); };
-  const saveSettings = () => localStorage.setItem("word-island-settings", JSON.stringify({ accent: $("#accentSelect").value, rate: $("#rateRange").value, autoSpeak: $("#autoSpeak").checked, repeatDelay: $("#dictationRepeatDelay").value, nextDelay: $("#dictationNextDelay").value, dictationGroup }));
+  // 口音与语速和知识清单页共用；其余字段只属于本页
+  const saveSettings = () => Speech.saveSettings({ accent: $("#accentSelect").value, rate: $("#rateRange").value, autoSpeak: $("#autoSpeak").checked, repeatDelay: $("#dictationRepeatDelay").value, nextDelay: $("#dictationNextDelay").value, dictationGroup });
 
-  // Chrome 的语音列表异步加载，首次 getVoices() 常为空，需监听 voiceschanged
-  let voices = [];
-  const refreshVoices = () => { voices = speechSynthesis.getVoices(); };
-  if ("speechSynthesis" in window) { refreshVoices(); speechSynthesis.onvoiceschanged = refreshVoices; }
-  const findVoice = language => {
-    if (!voices.length) refreshVoices();
-    const lang = language.toLowerCase();
-    return voices.find(v => v.lang.toLowerCase() === lang) || voices.find(v => v.lang.toLowerCase().startsWith(lang.slice(0, 2)));
-  };
-
-  function speak(text, slow = false, language = null) {
-    if (!("speechSynthesis" in window)) return toast("当前浏览器暂不支持语音朗读");
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language || $("#accentSelect").value;
-    utterance.rate = language === "zh-CN" ? .78 : slow ? Math.max(.45, Number($("#rateRange").value) - .15) : Number($("#rateRange").value);
-    const voice = findVoice(utterance.lang);
-    if (voice) utterance.voice = voice;
-    speechSynthesis.speak(utterance);
+  function speak(text, slow = false) {
+    if (!Speech.supported) return toast("当前浏览器暂不支持语音朗读");
+    const rate = Number($("#rateRange").value);
+    Speech.speakEnglish(text, { accent: $("#accentSelect").value, rate: slow ? Math.max(.45, rate - .15) : rate });
   }
 
   function renderTabs() {
@@ -86,7 +70,7 @@
   function changeUnit(nextId) { unitId = nextId; index = 0; order = []; renderTabs(); renderCard(); renderList(); newQuiz(); }
   function move(step) { index = (index + step + words().length) % words().length; renderCard(); }
   function setMode(nextMode) {
-    if (mode === "dictation" && nextMode !== "dictation") stopDictation();
+    if (mode === "dictation" && nextMode !== "dictation") dictation.stop();
     mode = nextMode;
     $$(".mode-button").forEach(button => button.classList.toggle("active", button.dataset.mode === mode));
     $$(".view").forEach(view => view.classList.remove("active"));
@@ -94,7 +78,7 @@
     $(".control-deck").classList.toggle("dictation-mode", mode === "dictation");
     if (mode === "learn") learningCard.reset();
     if (mode === "quiz") newQuiz();
-    if (mode === "dictation") renderDictation();
+    if (mode === "dictation") dictation.render();
     if (mode === "list") renderList();
   }
 
@@ -137,132 +121,19 @@
     $("#wordGrid").innerHTML = filtered.map(w => `<article class="word-row"><div><strong lang="en">${w.star ? "★ " : ""}${w.en}</strong><span>${w.zh}</span></div><button type="button" data-speak="${encodeURIComponent(w.en)}" aria-label="朗读 ${w.en}">▶</button></article>`).join("") || "<p>没有找到匹配的单词。</p>";
   }
 
-  function dictationSets() {
-    const groups = [];
-    for (let start = 0; start < allWords.length; start += 5) groups.push(allWords.slice(start, start + 5));
-    return groups;
-  }
-
-  function currentDictationWord() {
-    const groups = dictationSets();
-    if (dictationGroup >= groups.length) dictationGroup = Math.max(0, groups.length - 1);
-    const group = groups[dictationGroup] || [];
-    if (dictationIndex >= group.length) dictationIndex = Math.max(0, group.length - 1);
-    return group[dictationIndex];
-  }
-
-  function updateDictationRunState(statusText = "") {
-    $("#dictationAutoBtn").textContent = dictationRunning ? "暂停听写" : "开始自动听写";
-    $("#dictationStatus").textContent = statusText || (dictationRunning ? "播放中" : "已就绪");
-    $("#dictationStatus").classList.toggle("running", dictationRunning);
-  }
-
-  function renderDictation() {
-    const groups = dictationSets();
-    const group = groups[dictationGroup] || [];
-    const word = currentDictationWord();
-    if (!word) return;
-    dictationCard.reset();
-    const start = dictationGroup * 5 + 1;
-    const end = start + group.length - 1;
-    $("#dictationGroupLabel").textContent = `第 ${dictationGroup + 1} 组 · ${start}–${end}`;
-    $("#dictationPosition").textContent = `${start + dictationIndex} / ${end}`;
-    $("#dictationMeaning").textContent = word.zh;
-    $("#dictationWord").textContent = word.en;
-    $("#dictationGroupSelect").innerHTML = groups.map((items, groupIndex) => `<option value="${groupIndex}" ${groupIndex === dictationGroup ? "selected" : ""}>第 ${groupIndex + 1} 组（${groupIndex * 5 + 1}–${groupIndex * 5 + items.length}）</option>`).join("");
-    $("#dictationProgress").innerHTML = group.map((item, itemIndex) => `<span class="${itemIndex < dictationIndex ? "done" : itemIndex === dictationIndex ? "current" : ""}"></span>`).join("");
-    updateDictationRunState();
-  }
-
-  function speakDictationEnglish() {
-    const word = currentDictationWord();
-    if (!word) return;
-    stopDictation();
-    speak(word.en);
-  }
-
-  function dictationWait(milliseconds, token) {
-    return new Promise(resolve => setTimeout(() => resolve(dictationRunning && token === dictationRunToken), milliseconds));
-  }
-
-  function speakChineseOnce(text, token) {
-    return new Promise(resolve => {
-      if (!("speechSynthesis" in window) || token !== dictationRunToken) return resolve(false);
-      speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "zh-CN"; utterance.rate = .78;
-      const voice = findVoice("zh-CN");
-      if (voice) utterance.voice = voice;
-      utterance.onend = () => resolve(token === dictationRunToken);
-      utterance.onerror = () => resolve(false);
-      speechSynthesis.speak(utterance);
-    });
-  }
-
-  async function speakDictationPair(token) {
-    const word = currentDictationWord();
-    updateDictationRunState("第 1 遍");
-    if (!await speakChineseOnce(word.zh, token)) return false;
-    updateDictationRunState("等待第 2 遍");
-    if (!await dictationWait(Number($("#dictationRepeatDelay").value), token)) return false;
-    updateDictationRunState("第 2 遍");
-    return speakChineseOnce(word.zh, token);
-  }
-
-  async function startAutoDictation() {
-    if (dictationRunning) return stopDictation("已暂停");
-    const group = dictationSets()[dictationGroup] || [];
-    if (dictationIndex >= group.length - 1) {
-      dictationIndex = 0;
-      renderDictation();
-    }
-    dictationRunning = true;
-    const token = ++dictationRunToken;
-    updateDictationRunState();
-    while (dictationRunning && token === dictationRunToken) {
-      if (!await speakDictationPair(token)) return;
-      const group = dictationSets()[dictationGroup];
-      if (dictationIndex === group.length - 1) {
-        stopDictation("本组完成");
-        toast("本组 5 个单词已听写完成！");
-        return;
-      }
-      updateDictationRunState("留出书写时间");
-      if (!await dictationWait(Number($("#dictationNextDelay").value), token)) return;
-      dictationIndex += 1;
-      renderDictation();
-    }
-  }
-
-  async function repeatCurrentDictation() {
-    stopDictation();
-    dictationRunning = true;
-    const token = ++dictationRunToken;
-    updateDictationRunState("重听本词");
-    await speakDictationPair(token);
-    if (token === dictationRunToken) stopDictation("已重听");
-  }
-
-  function stopDictation(statusText = "") {
-    dictationRunning = false;
-    dictationRunToken += 1;
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
-    updateDictationRunState(statusText);
-  }
-
-  function moveDictation(step) {
-    stopDictation();
-    const groups = dictationSets();
-    const group = groups[dictationGroup] || [];
-    if (step > 0 && dictationIndex === group.length - 1) {
-      if (dictationGroup === groups.length - 1) return toast("已经是最后一题了");
-      dictationGroup += 1; dictationIndex = 0; saveSettings();
-    } else if (step < 0 && dictationIndex === 0) {
-      if (dictationGroup === 0) return toast("已经是第一题了");
-      dictationGroup -= 1; dictationIndex = groups[dictationGroup].length - 1; saveSettings();
-    } else dictationIndex += step;
-    renderDictation();
-  }
+  // 全册听写：展平后的完整词表按原顺序固定每 5 个一组
+  const dictation = window.createDictation({
+    card: dictationCard,
+    getItems: () => allWords,
+    getGroupSize: () => 5,
+    getRepeatDelay: () => $("#dictationRepeatDelay").value,
+    getNextDelay: () => $("#dictationNextDelay").value,
+    speakChinese: Speech.speakChinese,
+    speakEnglish: text => speak(text),
+    toast,
+    completeMessage: "本组 5 个单词已听写完成！",
+    onPositionChange: ({ group }) => { if (group !== dictationGroup) { dictationGroup = group; saveSettings(); } }
+  });
 
   let toastTimer; function toast(message) { const el = $("#toast"); el.textContent = message; el.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 1800); }
 
@@ -276,12 +147,6 @@
   $("#shuffleBtn").addEventListener("click", () => { order = shuffle(unit().words); index = 0; renderCard(); toast("单词顺序已打乱"); });
   $("#answerGrid").addEventListener("click", e => { const b = e.target.closest(".answer-button"); if (b) answerQuiz(b); });
   $("#quizNextBtn").addEventListener("click", newQuiz); $("#quizSpeakBtn").addEventListener("click", () => speak(quizWord.en));
-  $("#dictationGroupSelect").addEventListener("change", e => { stopDictation(); dictationGroup = Number(e.target.value); dictationIndex = 0; saveSettings(); renderDictation(); });
-  $("#dictationSpeakBtn").addEventListener("click", repeatCurrentDictation);
-  $("#dictationAutoBtn").addEventListener("click", startAutoDictation);
-  $("#dictationEnglishSpeakBtn").addEventListener("click", speakDictationEnglish);
-  $("#dictationRestartBtn").addEventListener("click", () => { stopDictation(); dictationIndex = 0; renderDictation(); toast("已回到本组第一题"); });
-  $("#dictationPrevBtn").addEventListener("click", () => moveDictation(-1)); $("#dictationNextBtn").addEventListener("click", () => moveDictation(1));
   $("#searchInput").addEventListener("input", renderList); $("#wordGrid").addEventListener("click", e => { const b = e.target.closest("[data-speak]"); if (b) speak(decodeURIComponent(b.dataset.speak)); });
   $("#voiceSettingsBtn").addEventListener("click", () => $("#voiceDialog").showModal()); $("#rateRange").addEventListener("input", e => { $("#rateOutput").textContent = `${Number(e.target.value).toFixed(2)}×`; saveSettings(); });
   $("#accentSelect").addEventListener("change", saveSettings); $("#autoSpeak").addEventListener("change", saveSettings);
@@ -291,24 +156,19 @@
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     const target = event.target instanceof Element ? event.target : null;
     if (target?.closest("input, select, textarea, [contenteditable]") || $("#voiceDialog").open) return;
-    if (mode !== "learn" && mode !== "dictation") return;
+    if (mode === "dictation") return void dictation.handleKeydown(event);
+    if (mode !== "learn") return;
 
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       event.preventDefault();
-      const step = event.key === "ArrowLeft" ? -1 : 1;
-      if (mode === "learn") move(step);
-      else moveDictation(step);
+      move(event.key === "ArrowLeft" ? -1 : 1);
     } else if (event.key === " " || event.key === "Enter") {
       if (target?.closest("button, a")) return;
       event.preventDefault();
-      if (!event.repeat) (mode === "learn" ? learningCard : dictationCard).toggle();
+      if (!event.repeat) learningCard.toggle();
     } else if (event.key.toLowerCase() === "p") {
       event.preventDefault();
-      if (mode === "learn") speak(current().en);
-      else speakDictationEnglish();
-    } else if (event.key.toLowerCase() === "r" && mode === "dictation") {
-      event.preventDefault();
-      repeatCurrentDictation();
+      speak(current().en);
     }
   });
 
@@ -317,7 +177,7 @@
   $("#rateOutput").textContent = `${Number($("#rateRange").value).toFixed(2)}×`;
   if (settings.repeatDelay) $("#dictationRepeatDelay").value = settings.repeatDelay;
   if (settings.nextDelay) $("#dictationNextDelay").value = settings.nextDelay;
-  persist(); renderTabs(); renderCard(); renderList(); newQuiz(); renderDictation();
+  persist(); renderTabs(); renderCard(); renderList(); newQuiz(); dictation.refresh({ group: dictationGroup, index: 0 });
   // 自动朗读开关要在首次 renderCard 之后恢复，避免页面一加载就发声
   if (settings.autoSpeak) $("#autoSpeak").checked = true;
 })();
