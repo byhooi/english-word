@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173b57">
-  <title>单词探险岛｜五年级英语</title>
+  <title>单词听写｜五年级英语</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,10 +12,11 @@
     <header class="topbar">
       <a class="brand" href="#" aria-label="回到首页">
         <span class="brand-mark" aria-hidden="true">Aa</span>
-        <span><strong>单词探险岛</strong><small>五年级英语 · 快乐开口说</small></span>
+        <span><strong>单词听写</strong><small>五年级英语 · 快乐开口说</small></span>
       </a>
       <div class="top-actions">
         <a class="icon-button" href="zs.html" style="text-decoration:none;display:inline-flex;align-items:center;font-weight:700;color:var(--navy);gap:6px;" title="前往知识清单听写">📝 知识清单听写</a>
+        <button class="icon-button" id="printSheetBtn" type="button" title="打印当前单元的单词听写答题纸（不含答案）">🖨️ 打印答题纸</button>
         <button class="icon-button" id="voiceSettingsBtn" type="button" aria-label="发音设置">发音设置</button>
       </div>
     </header>
@@ -135,10 +136,13 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <!-- 打印答题纸：仅在打印时显示，由 print.js 按单元生成 -->
+  <section class="print-sheet" id="printSheet" aria-hidden="true"></section>
   <script src="words.js"></script>
   <script src="speech.js"></script>
   <script src="flashcard.js"></script>
   <script src="dictation.js"></script>
+  <script src="print.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

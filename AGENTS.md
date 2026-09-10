@@ -4,9 +4,9 @@
 
 本仓库是一个无需构建的静态英语学习站点，包含两个页面：
 
-- 单词页：`index.html` 定义单词卡、闯关测验、全册听写和词表；`app.js` 实现这些模式与本地进度；`words.js` 保存 Unit 1–8 与专有名词数据；`styles.css` 负责视觉样式与响应式布局。
-- 知识清单页：`zs.html` 定义纸上听写、清单一览和打印答题纸；`zs_app.js` 实现单元/类型过滤、分类型分组与等待设置、进度记忆和打印；`zs_data.js` 保存各单元常考短语与经典句型，由 `generate_zs_data.py` 生成，不要手改；`zs.css` 在 `styles.css` 之上扩展页面专属样式和 `@media print` 打印样式。
-- 共用模块：`speech.js` 封装浏览器语音朗读与 `localStorage` 设置读写；`flashcard.js` 提供翻卡交互；`dictation.js` 是两个页面共用的纸上听写引擎。
+- 单词页：`index.html` 定义单词卡、闯关测验、全册听写、词表和打印答题纸；`app.js` 实现这些模式与本地进度；`words.js` 保存 Unit 1–8 与专有名词数据；`styles.css` 负责视觉样式、响应式布局和两页共用的 `@media print` 打印样式。
+- 知识清单页：`zs.html` 定义纸上听写、清单一览和打印答题纸；`zs_app.js` 实现单元/类型过滤、分类型分组与等待设置、进度记忆和打印；`zs_data.js` 保存各单元常考短语与经典句型，由 `generate_zs_data.py` 生成，不要手改；`zs.css` 在 `styles.css` 之上扩展页面专属样式。
+- 共用模块：`speech.js` 封装浏览器语音朗读与 `localStorage` 设置读写；`flashcard.js` 提供翻卡交互；`dictation.js` 是两个页面共用的纸上听写引擎；`print.js` 生成打印答题纸。
 
 `_d_meta.json` 是设计资产元数据，除同步设计交付状态外不要手动修改。TTS 生成脚本和生成音频应保存在独立工具仓库。
 
@@ -21,7 +21,7 @@ python -m http.server 4311
 然后访问 `http://localhost:4311/` 与 `http://localhost:4311/zs.html`。提交前执行：
 
 ```powershell
-node --check app.js; node --check zs_app.js; node --check speech.js; node --check dictation.js; node --check flashcard.js; node --check words.js; node --check zs_data.js
+node --check app.js; node --check zs_app.js; node --check speech.js; node --check dictation.js; node --check print.js; node --check flashcard.js; node --check words.js; node --check zs_data.js
 git diff --check
 ```
 
@@ -46,7 +46,7 @@ HTML 使用语义化标签、双引号属性和完整闭合标签。JavaScript �
 
 ## 打印答题纸
 
-`zs.html` 的"打印答题纸"按当前单元输出（"全部单元"时每单元一页），包含该单元全部短语与句型的中文提示和书写线，不含英文答案，不受类型过滤影响。内容由 `zs_app.js` 写入 `#printSheet`，样式在 `zs.css` 的 `@media print` 中。
+两个页面的"打印答题纸"都调用 `print.js` 的 `window.printAnswerSheet(pages)`，把内容写入 `#printSheet` 后 `window.print()`；样式在 `styles.css` 的 `@media print` 中。答题纸只有中文提示和一条书写线，不含英文答案，每个单元一页。单词页打印当前单元全部单词（两列）；知识清单页打印当前单元的全部短语（两列）与句型（单列），不受类型过滤影响，"全部单元"时每单元一页。
 
 ## 测试要求
 

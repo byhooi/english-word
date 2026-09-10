@@ -152,6 +152,8 @@
   $("#accentSelect").addEventListener("change", saveSettings); $("#autoSpeak").addEventListener("change", saveSettings);
   $("#dictationRepeatDelay").addEventListener("change", saveSettings); $("#dictationNextDelay").addEventListener("change", saveSettings);
   $("#reviewBtn").addEventListener("click", () => { const collection = allWords.filter(w => saved.has(w.id)); if (!collection.length) return toast("先在单词卡右上角收藏几个难词吧"); const first = collection[0]; unitId = first.unitId; order = collection.filter(w => w.unitId === unitId); index = 0; renderTabs(); setMode("learn"); renderCard(); $("#learnView").scrollIntoView({behavior:"smooth"}); });
+  // 打印当前单元的听写答题纸：只有中文提示与书写线，不含英文
+  $("#printSheetBtn").addEventListener("click", () => { dictation.stop(); window.printAnswerSheet([{ title: `单词听写 · ${unit().label} ${unit().theme}`, sections: [{ heading: "本单元单词", items: unit().words, columns: 2, roomy: true }] }]); });
   document.addEventListener("keydown", event => {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     const target = event.target instanceof Element ? event.target : null;

@@ -170,34 +170,19 @@
       : `<div style="text-align:center;padding:48px;color:var(--muted);font-weight:700;">没有找到匹配的短语或句型</div>`;
   }
 
-  // 打印答题纸：按单元输出中文提示与书写线，不含答案
-  function buildPrintPage(unit) {
-    const phrases = unit.phrases || [];
-    const sentences = unit.sentences || [];
-    const sections = [];
-    const numbers = ["一", "二"];
-    const item = (entry, i) => `<li class="print-item"><b>${i + 1}.</b><span class="print-zh">${escapeHtml(entry.zh)}</span><span class="print-line"></span></li>`;
-    if (phrases.length) sections.push(`<h2 class="print-section">${numbers[sections.length]}、常考短语（${phrases.length} 题）</h2><ol class="print-list print-phrases">${phrases.map(item).join("")}</ol>`);
-    if (sentences.length) sections.push(`<h2 class="print-section">${numbers[sections.length]}、经典句型（${sentences.length} 题）</h2><ol class="print-list print-sentences">${sentences.map(item).join("")}</ol>`);
-    return `
-      <article class="print-page">
-        <header class="print-head">
-          <div>
-            <h1>知识清单听写 · ${unit.label} ${unit.theme}</h1>
-            <p lang="en">${escapeHtml(unit.title)}</p>
-          </div>
-          <p class="print-info">姓名：__________　日期：__________　得分：______</p>
-        </header>
-        ${sections.join("")}
-      </article>`;
-  }
-
+  // 打印答题纸：按单元输出中文提示与书写线，不含答案；"全部单元"时每单元一页
   function printSheet() {
     dictation.stop();
     const units = currentUnit === "all" ? UNITS : UNITS.filter(u => u.id === currentUnit);
     if (!units.length) return toast("当前没有可打印的单元");
-    $("#printSheet").innerHTML = units.map(buildPrintPage).join("");
-    window.print();
+    window.printAnswerSheet(units.map(unit => ({
+      title: `知识清单听写 · ${unit.label} ${unit.theme}`,
+      subtitle: unit.title,
+      sections: [
+        { heading: "常考短语", items: unit.phrases || [], columns: 2 },
+        { heading: "经典句型", items: unit.sentences || [], columns: 1 }
+      ]
+    })));
   }
 
   // 模式、单元、类型切换
