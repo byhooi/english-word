@@ -390,7 +390,7 @@ window.ZS_UNITS = [
       },
       {
         "en": "We like going to the teahouses.",
-        "zh": "我们打算去茶馆。"
+        "zh": "我们喜欢去茶馆。"
       },
       {
         "en": "We sometimes go to see the pandas at the panda base.",
@@ -725,7 +725,7 @@ window.ZS_UNITS = [
         "zh": "制造商品"
       },
       {
-        "en": "go for walk",
+        "en": "go for a walk",
         "zh": "散步；去走走"
       }
     ],
