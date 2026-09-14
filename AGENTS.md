@@ -4,7 +4,7 @@
 
 本仓库是一个无需构建的静态英语学习站点，包含两个页面：
 
-- 单词页：`index.html` 定义单词卡、闯关测验、全册听写、词表和打印答题纸；`app.js` 实现这些模式与本地进度；`words.js` 保存 Unit 1–8 与专有名词数据；`styles.css` 负责视觉样式、响应式布局和两页共用的 `@media print` 打印样式。
+- 单词页：`index.html` 定义单词卡、闯关测验、单元听写、词表和打印答题纸；`app.js` 实现这些模式与本地进度；`words.js` 保存 Unit 1–8 与专有名词数据；`styles.css` 负责视觉样式、响应式布局和两页共用的 `@media print` 打印样式。
 - 知识清单页：`zs.html` 定义纸上听写、清单一览和打印答题纸；`zs_app.js` 实现单元/类型过滤、分类型分组与等待设置、进度记忆和打印；`zs_data.js` 保存各单元常考短语与经典句型，由 `generate_zs_data.py` 生成，不要手改；`zs.css` 在 `styles.css` 之上扩展页面专属样式。
 - 共用模块：`speech.js` 封装浏览器语音朗读与 `localStorage` 设置读写；`flashcard.js` 提供翻卡交互；`dictation.js` 是两个页面共用的纸上听写引擎；`print.js` 生成打印答题纸。
 
@@ -33,13 +33,13 @@ HTML 使用语义化标签、双引号属性和完整闭合标签。JavaScript �
 
 ## 本地设置与进度
 
-两个页面共用 `localStorage` 的 `word-island-settings`，必须通过 `Speech.saveSettings(patch)` 合并写入，不得整体覆盖。`accent`、`rate` 跨页面共享；单词页字段为 `autoSpeak`、`repeatDelay`、`nextDelay`、`dictationGroup`；知识清单页字段统一加 `zs` 前缀（`zsUnit`、`zsType`、`zsGroup`、`zsIndex`、`zsRepeatDelay`、`zsPhraseGroupSize`、`zsPhraseNextDelay`、`zsSentenceGroupSize`、`zsSentenceNextDelay`）。收藏词与已掌握词仍分别存于 `word-island-saved`、`word-island-mastered`。
+两个页面共用 `localStorage` 的 `word-island-settings`，必须通过 `Speech.saveSettings(patch)` 合并写入，不得整体覆盖。`accent`、`rate` 跨页面共享；单词页字段为 `autoSpeak`、`repeatDelay`、`nextDelay`、`dictationUnit`、`dictationGroup`，听写单元与单元内组号配对恢复，旧版未记录单元的全册组号不直接复用；知识清单页字段统一加 `zs` 前缀（`zsUnit`、`zsType`、`zsGroup`、`zsIndex`、`zsRepeatDelay`、`zsPhraseGroupSize`、`zsPhraseNextDelay`、`zsSentenceGroupSize`、`zsSentenceNextDelay`）。收藏词与已掌握词仍分别存于 `word-island-saved`、`word-island-mastered`。
 
 ## 听写与语音规则
 
 听写引擎在 `dictation.js`，两个页面只提供数据、分组大小、等待时间和朗读函数，不要在页面内另写一套播报流程。
 
-- 单词页：数据来自展平后的完整词表，不按单元重新排序；始终按原顺序每 5 个一组，最后一组允许不足 5 个。
+- 单词页：听写使用当前所选 Unit 的完整词表，按单元内原顺序每 5 个一组，最后一组允许不足 5 个，不与下一单元混组，也不受翻卡打乱或收藏筛选影响。切换单元时停止播放并回到新单元第一组，听写模式保留单元选项。
 - 知识清单页：按当前单元和类型过滤后分组。短语与句型各记一套分组大小（5 或 10）和书写等待；选"全部内容"时分组按句型设置，每题的书写等待按该题类型取值。书写等待支持 `manual`（播报两遍后停下等手动点击）。
 - 每个中文提示播放两遍，随后按等待时间进入下一题。修改异步播放时必须保留运行令牌和停止逻辑，防止暂停、切换模式或切组后旧计时器继续推进。
 - 英文朗读统一经 `Speech.speakEnglish`，它会把 `...` 替换为 something 后再读。API Key 不得放入前端；页面语音仅使用浏览器 `speechSynthesis`。

@@ -10,8 +10,10 @@
   const saved = new Set(loadIds("word-island-saved"));
   const mastered = new Set(loadIds("word-island-mastered"));
   const settings = Speech.loadSettings();
-  let unitId = "u1", mode = "learn", index = 0, order = [], quizWord = null, quizScore = 0, answered = false;
-  let dictationGroup = Number.isInteger(Number(settings.dictationGroup)) ? Number(settings.dictationGroup) : 0;
+  let unitId = units.some(u => u.id === settings.dictationUnit) ? settings.dictationUnit : "u1";
+  let mode = "learn", index = 0, order = [], quizWord = null, quizScore = 0, answered = false;
+  // 旧版只记录全册组号，不能直接用作单元内组号。
+  let dictationGroup = settings.dictationUnit === unitId && Number.isInteger(Number(settings.dictationGroup)) ? Number(settings.dictationGroup) : 0;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const learningCard = window.createFlashcard($("#flashcard"), {
@@ -28,7 +30,7 @@
   const current = () => words()[index] || words()[0];
   const persist = () => { localStorage.setItem("word-island-saved", JSON.stringify([...saved])); localStorage.setItem("word-island-mastered", JSON.stringify([...mastered])); };
   // 口音与语速和知识清单页共用；其余字段只属于本页
-  const saveSettings = () => Speech.saveSettings({ accent: $("#accentSelect").value, rate: $("#rateRange").value, autoSpeak: $("#autoSpeak").checked, repeatDelay: $("#dictationRepeatDelay").value, nextDelay: $("#dictationNextDelay").value, dictationGroup });
+  const saveSettings = () => Speech.saveSettings({ accent: $("#accentSelect").value, rate: $("#rateRange").value, autoSpeak: $("#autoSpeak").checked, repeatDelay: $("#dictationRepeatDelay").value, nextDelay: $("#dictationNextDelay").value, dictationUnit: unitId, dictationGroup });
 
   function speak(text, slow = false) {
     if (!Speech.supported) return toast("当前浏览器暂不支持语音朗读");
@@ -57,7 +59,7 @@
     $("#cardPosition").textContent = `${index + 1} / ${words().length}`;
     $("#saveBtn").textContent = saved.has(w.id) ? "★" : "☆"; $("#saveBtn").classList.toggle("saved", saved.has(w.id));
     $("#masterBtn").textContent = mastered.has(w.id) ? "已记住 ✓" : "我记住了"; $("#masterBtn").classList.toggle("mastered", mastered.has(w.id));
-    renderStats(); if (announce || $("#autoSpeak").checked) speak(w.en);
+    renderStats(); if (mode === "learn" && (announce || $("#autoSpeak").checked)) speak(w.en);
   }
 
   function renderStats() {
@@ -67,7 +69,12 @@
     $("#savedCount").textContent = currentIds.filter(id => saved.has(id)).length;
   }
 
-  function changeUnit(nextId) { unitId = nextId; index = 0; order = []; renderTabs(); renderCard(); renderList(); newQuiz(); }
+  function changeUnit(nextId, nextOrder = []) {
+    unitId = nextId; index = 0; order = nextOrder;
+    dictation.refresh({ group: 0, index: 0 });
+    saveSettings();
+    renderTabs(); renderCard(); renderList(); newQuiz();
+  }
   function move(step) { index = (index + step + words().length) % words().length; renderCard(); }
   function setMode(nextMode) {
     if (mode === "dictation" && nextMode !== "dictation") dictation.stop();
@@ -75,7 +82,6 @@
     $$(".mode-button").forEach(button => button.classList.toggle("active", button.dataset.mode === mode));
     $$(".view").forEach(view => view.classList.remove("active"));
     $(`#${mode}View`).classList.add("active");
-    $(".control-deck").classList.toggle("dictation-mode", mode === "dictation");
     if (mode === "learn") learningCard.reset();
     if (mode === "quiz") newQuiz();
     if (mode === "dictation") dictation.render();
@@ -121,17 +127,18 @@
     $("#wordGrid").innerHTML = filtered.map(w => `<article class="word-row"><div><strong lang="en">${w.star ? "★ " : ""}${w.en}</strong><span>${w.zh}</span></div><button type="button" data-speak="${encodeURIComponent(w.en)}" aria-label="朗读 ${w.en}">▶</button></article>`).join("") || "<p>没有找到匹配的单词。</p>";
   }
 
-  // 全册听写：展平后的完整词表按原顺序固定每 5 个一组
+  // 单元听写：当前单元的完整词表按原顺序固定每 5 个一组，不受翻卡顺序影响。
   const dictation = window.createDictation({
     card: dictationCard,
-    getItems: () => allWords,
+    getItems: () => unit().words,
     getGroupSize: () => 5,
     getRepeatDelay: () => $("#dictationRepeatDelay").value,
     getNextDelay: () => $("#dictationNextDelay").value,
     speakChinese: Speech.speakChinese,
     speakEnglish: text => speak(text),
     toast,
-    completeMessage: "本组 5 个单词已听写完成！",
+    completeMessage: "本组单词已全部听写完成！",
+    onRender: () => { $("#dictationTitle").textContent = `${unit().label} 顺序听写`; },
     onPositionChange: ({ group }) => { if (group !== dictationGroup) { dictationGroup = group; saveSettings(); } }
   });
 
@@ -151,7 +158,7 @@
   $("#voiceSettingsBtn").addEventListener("click", () => $("#voiceDialog").showModal()); $("#rateRange").addEventListener("input", e => { $("#rateOutput").textContent = `${Number(e.target.value).toFixed(2)}×`; saveSettings(); });
   $("#accentSelect").addEventListener("change", saveSettings); $("#autoSpeak").addEventListener("change", saveSettings);
   $("#dictationRepeatDelay").addEventListener("change", saveSettings); $("#dictationNextDelay").addEventListener("change", saveSettings);
-  $("#reviewBtn").addEventListener("click", () => { const collection = allWords.filter(w => saved.has(w.id)); if (!collection.length) return toast("先在单词卡右上角收藏几个难词吧"); const first = collection[0]; unitId = first.unitId; order = collection.filter(w => w.unitId === unitId); index = 0; renderTabs(); setMode("learn"); renderCard(); $("#learnView").scrollIntoView({behavior:"smooth"}); });
+  $("#reviewBtn").addEventListener("click", () => { const collection = allWords.filter(w => saved.has(w.id)); if (!collection.length) return toast("先在单词卡右上角收藏几个难词吧"); const first = collection[0]; setMode("learn"); changeUnit(first.unitId, collection.filter(w => w.unitId === first.unitId)); $("#learnView").scrollIntoView({behavior:"smooth"}); });
   // 打印当前单元的听写答题纸：只有中文提示与书写线，不含英文
   $("#printSheetBtn").addEventListener("click", () => { dictation.stop(); window.printAnswerSheet([{ title: `单词听写 · ${unit().label} ${unit().theme}`, sections: [{ heading: "本单元单词", items: unit().words, columns: 2, roomy: true }] }]); });
   document.addEventListener("keydown", event => {

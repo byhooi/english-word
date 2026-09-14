@@ -969,14 +969,6 @@ dialog p {
   }
 }
 
-.control-deck.dictation-mode {
-  justify-content:flex-end
-}
-
-.control-deck.dictation-mode .unit-tabs {
-  display:none
-}
-
 .dictation-view {
   margin:0 clamp(16px,3vw,48px) 50px
 }
