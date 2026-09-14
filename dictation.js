@@ -110,7 +110,7 @@
     function stop(statusText = "") {
       running = false;
       runToken += 1;
-      if ("speechSynthesis" in window) speechSynthesis.cancel();
+      window.Speech.cancel();
       updateStatus(statusText);
     }
 

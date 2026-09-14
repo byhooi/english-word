@@ -5,6 +5,10 @@
   // 单词页与知识清单页共用同一个 key：口音、语速跨页面生效，页面各自的字段用前缀区分。
   const SETTINGS_KEY = "word-island-settings";
   const supported = "speechSynthesis" in window;
+  // iOS 和 Edge 统一人名读音；iPadOS 桌面模式按触控点数识别。
+  const useChineseName = /iPhone|iPad|iPod/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    || /\b(?:Edg|EdgA|EdgiOS|Edge)\//.test(navigator.userAgent);
 
   function loadSettings() {
     try {
@@ -44,30 +48,68 @@
       || null;
   }
 
+  let runToken = 0;
+  let finishCurrent = null;
+
   function cancel() {
+    runToken += 1;
+    // 有些浏览器取消语音后不触发回调，主动结束等待，阻止旧句子的后半段继续播放。
+    if (finishCurrent) finishCurrent(false);
     if (supported) speechSynthesis.cancel();
   }
 
   // 朗读前把 "more ... than ..." 这类省略号换成 something，避免引擎读出停顿或跳过。
   const readableEnglish = text => String(text).replace(/(\.{3}|…)/g, " something ").replace(/\s+/g, " ").trim();
 
-  // 返回 Promise：正常读完 resolve(true)，被打断或出错 resolve(false)。
-  function speak(text, { lang, rate }) {
+  // 提前排入整句的各段，避免每读完一段才重新启动下一种音色。
+  // 整段朗读共用令牌：正常读完返回 true，取消或出错返回 false。
+  function speakParts(parts) {
+    cancel();
+    const token = runToken;
     return new Promise(resolve => {
       if (!supported) return resolve(false);
-      cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      utterance.rate = rate;
-      const voice = findVoice(lang);
-      if (voice) utterance.voice = voice;
-      utterance.onend = () => resolve(true);
-      utterance.onerror = () => resolve(false);
-      speechSynthesis.speak(utterance);
+      if (!parts.length) return resolve(true);
+      let remaining = parts.length;
+      const finish = finished => {
+        if (finishCurrent === finish) finishCurrent = null;
+        resolve(finished && token === runToken);
+      };
+      finishCurrent = finish;
+      for (const { text, lang, rate } of parts) {
+        if (token !== runToken) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = rate;
+        const voice = findVoice(lang);
+        if (voice) utterance.voice = voice;
+        utterance.onend = () => {
+          if (token !== runToken) return;
+          remaining -= 1;
+          if (!remaining) finish(true);
+        };
+        utterance.onerror = () => {
+          // 任一段出错时清空后续队列，旧句子的回调不能停止新句子。
+          if (token === runToken) cancel();
+        };
+        speechSynthesis.speak(utterance);
+      }
     });
   }
 
-  const speakEnglish = (text, { accent = "en-US", rate = 0.7 } = {}) => speak(readableEnglish(text), { lang: accent, rate });
+  const speak = (text, { lang, rate }) => speakParts([{ text, lang, rate }]);
+
+  function speakEnglish(text, { accent = "en-US", rate = 0.7 } = {}) {
+    const readable = readableEnglish(text);
+    if (!useChineseName) return speak(readable, { lang: accent, rate });
+    // iOS 和 Edge 都用普通话读“小月”，随后连续播放英文。
+    const parts = readable.split(/(\bXiaoyue\b[,，.!?;:]*)/gi).map((part, index) => ({
+      // 分段本身已有停顿，省去姓名后的逗号，并清理英文段首尾空白。
+      text: index % 2 ? part.replace(/Xiaoyue/i, "小月").replace(/[,，]+$/, "") : part.trim(),
+      lang: index % 2 ? "zh-CN" : accent,
+      rate
+    })).filter(part => part.text.trim());
+    return speakParts(parts);
+  }
   const speakChinese = text => speak(text, { lang: "zh-CN", rate: 0.78 });
 
   window.Speech = { supported, loadSettings, saveSettings, findVoice, cancel, speak, speakEnglish, speakChinese, readableEnglish };
