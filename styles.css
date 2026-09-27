@@ -61,15 +61,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.flashcard:focus-v
 }
 
 .brand-mark {
-  display:grid;
-  place-items:center;
-  width:48px;
-  height:48px;
-  background:var(--navy);
-  color:white;
-  border-radius:16px 16px 16px 5px;
-  font:900 20px/1 Georgia,serif;
-  transform:rotate(-3deg)
+  display:block;
+  flex:none;
+  width:52px;
+  height:52px
 }
 
 .brand strong,.brand small {

@@ -90,6 +90,8 @@ python generate_zs_data.py
 
 `styles.css` 是全站基础（含两页共用的 `.paper-dictation` 听写卡片样式、`@media print` 打印答题纸和 620px/900px 断点）；`zs.css` 只放知识清单页专属样式。窄屏下 `.icon-button` 会被隐藏，顶栏按钮用这个类时要知道手机上看不到。
 
+Logo 是手绘路径的 SVG（不依赖字体）：`logo.svg`（深蓝，单词页）和 `zs-logo.svg`（蓝色 `#0277bd`，知识清单页），两者除底色和 `<title>` 外完全相同，改造型时两个文件要同步。它们同时用作页面 favicon 和顶栏 `.brand-mark` 图片，倾斜角度画在 SVG 里，CSS 不再旋转。同时配套生成了对应的 PNG 图标：`logo.png` / `zs-logo.png`（300x300，供微信分享抓取卡片缩略图）与 `logo-touch-icon.png` / `zs-logo-touch-icon.png`（192x192，供手机“添加到主屏幕”作为桌面 App 图标）。
+
 ## 编码约定
 
 - HTML：语义化标签、双引号属性、完整闭合标签。

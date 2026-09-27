@@ -1,0 +1,4 @@
+# 忽略临时截图与系统文件
+*_d.png
+.DS_Store
+Thumbs.db
