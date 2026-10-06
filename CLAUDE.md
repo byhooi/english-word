@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-面向五年级学生（沪教牛津五上）的静态英语学习站点，纯 HTML/CSS/JS，无构建步骤、无依赖、无测试框架。两个入口页面：
+面向五年级学生（沪教牛津五上）的静态英语学习站点，纯 HTML/CSS/JS，无构建步骤、无依赖、无第三方测试框架。两个入口页面：
 
 - `index.html` 单词听写：单词卡、三选一测验、按单元听写、词表、按单元打印答题纸。
 - `zs.html` 知识清单听写：按单元的常考短语与经典句型听写、清单一览、打印答题纸。
@@ -33,7 +33,7 @@ python generate_zs_data.py
 & "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --disable-gpu --virtual-time-budget=3000 --dump-dom "file:///D:/Documents/Github/english-word/zs.html"
 ```
 
-没有自动化测试，验证靠浏览器手动点：
+运行 `node scripts/check.cjs` 检查语法、数据 ID、存储降级和听写边界；完整交互仍需浏览器手动验收：
 
 - 每次改动：桌面和窄屏两种宽度下的单元切换、翻卡、发音、收藏、测验、搜索、`localStorage` 恢复。
 - 改听写：两个页面都要查分组数量、每题播两遍、间隔设置、开始/暂停、组尾停止、重听、重来本组、答案揭晓。
@@ -88,7 +88,7 @@ python generate_zs_data.py
 
 ### 样式
 
-`styles.css` 是全站基础（含两页共用的 `.paper-dictation` 听写卡片样式、`@media print` 打印答题纸和 620px/900px 断点）；`zs.css` 只放知识清单页专属样式。窄屏下 `.icon-button` 会被隐藏，顶栏按钮用这个类时要知道手机上看不到。
+`styles.css` 是全站基础（含两页共用的 `.paper-dictation` 听写卡片样式、`@media print` 打印答题纸和 620px/900px 断点）；`zs.css` 只放知识清单页专属样式。窄屏下 `.icon-button` 默认隐藏，但发音设置保留；页面导航链接保留原有内联显示规则。
 
 Logo 是手绘路径的 SVG（不依赖字体）：`logo.svg`（深蓝，单词页）和 `zs-logo.svg`（蓝色 `#0277bd`，知识清单页），两者除底色和 `<title>` 外完全相同，改造型时两个文件要同步。它们同时用作页面 favicon 和顶栏 `.brand-mark` 图片，倾斜角度画在 SVG 里，CSS 不再旋转。同时配套生成了对应的 PNG 图标：`logo.png` / `zs-logo.png`（300x300，供微信分享抓取卡片缩略图）与 `logo-touch-icon.png` / `zs-logo-touch-icon.png`（192x192，供手机“添加到主屏幕”作为桌面 App 图标）。
 
@@ -105,3 +105,14 @@ Logo 是手绘路径的 SVG（不依赖字体）：`logo.svg`（深蓝，单词�
 ## 提交
 
 Conventional Commits，中文描述，一次提交一个主题（见 git log 风格：`feat: 优化卡片显示样式……`），常用前缀 `feat:`、`fix:`、`docs:`、`refactor:`。PR 说明用户可见的变化和验证步骤；视觉改动附桌面和手机截图，词库改动注明来源和影响范围。
+
+
+## 学习流程与回归检查
+
+- `Speech.readData` / `Speech.writeData` 统一保护本地读写；写入失败使用内存降级。共享设置仍必须通过 `Speech.saveSettings(patch)` 合并。
+- `word-island-mistakes` 独立保存错词 ID；答错会撤销已掌握，但不修改主动收藏。答对测验不自动标记掌握，主动点击“我记住了”才清除错词。
+- 收藏可按本单元或全册复习；错词按全册复习。进入时生成列表快照，取消收藏或标记掌握后，下次进入更新范围。听写始终使用所选单元完整词表。
+- 每轮测验从当前单元不重复抽取最多 10 题，末题展示正确题数，可再练一轮。
+- 听写单独记录完成状态，最后一题暂停后继续不重置；语音失败只清理当前令牌对应的运行状态。
+- `scripts/check.cjs` 使用 Node 内置模块，无需安装依赖。运行 `node scripts/check.cjs` 和 `git diff --check`。
+- 手机保留发音设置入口。进度导入导出、真实设备语音测试和打印截图验收尚未包含在自动检查中。

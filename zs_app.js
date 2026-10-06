@@ -280,5 +280,6 @@
     initEventListeners();
     // 恢复上次的单元、类型与组内位置
     refreshFilteredItems({ group: Number(settings.zsGroup) || 0, index: Number(settings.zsIndex) || 0 });
+    if (Speech.storageFailed) toast("本地存储异常，本次进度可能无法保存");
   });
 })();

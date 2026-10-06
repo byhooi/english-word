@@ -882,9 +882,13 @@ dialog p {
 
 @media(max-width:620px) {
   .topbar {
-    height:74px
+    height:auto;
+    min-height:74px;
+    flex-wrap:wrap;
+    gap:10px;
+    padding-block:10px
   }
-  .brand small,.icon-button {
+  .brand small,.icon-button:not(#voiceSettingsBtn) {
     display:none
   }
   .hero {
@@ -1423,4 +1427,8 @@ dialog p {
   .print-roomy .print-line {
     height: 30px;
   }
+}
+
+#exitReviewBtn[hidden] {
+  display:none
 }

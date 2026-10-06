@@ -38,6 +38,7 @@
     let group = 0;
     let index = 0;
     let running = false;
+    let completed = false;
     let runToken = 0;
     let lastSize = 0;
 
@@ -92,8 +93,12 @@
 
     async function sayChinese(text, token) {
       if (token !== runToken) return false;
-      const finished = await speakChinese(text);
-      return finished && token === runToken;
+      try {
+        const finished = await speakChinese(text);
+        return finished && token === runToken;
+      } catch (error) {
+        return false;
+      }
     }
 
     async function speakPair(token) {
@@ -117,7 +122,8 @@
     async function start() {
       if (running) return stop("已暂停");
       if (!currentItem()) return toast("当前范围没有可听写的内容");
-      if (index >= currentGroup().length - 1) {
+      if (completed) {
+        completed = false;
         index = 0;
         render();
       }
@@ -125,8 +131,12 @@
       const token = ++runToken;
       updateStatus();
       while (running && token === runToken) {
-        if (!await speakPair(token)) return;
+        if (!await speakPair(token)) {
+          if (token === runToken) stop("朗读未完成，请重试或检查发音设置");
+          return;
+        }
         if (index === currentGroup().length - 1) {
+          completed = true;
           stop("本组完成");
           toast(completeMessage);
           return;
@@ -146,8 +156,8 @@
       running = true;
       const token = ++runToken;
       updateStatus("重听本题");
-      await speakPair(token);
-      if (token === runToken) stop("已重听");
+      const finished = await speakPair(token);
+      if (token === runToken) stop(finished ? "已重听" : "朗读未完成，请重试");
     }
 
     function speakCurrentEnglish() {
@@ -159,6 +169,7 @@
 
     function move(step) {
       stop();
+      completed = false;
       const items = currentGroup();
       if (step > 0 && index >= items.length - 1) {
         if (group >= groups.length - 1) return toast("已经是最后一组最后一题了");
@@ -176,6 +187,7 @@
 
     function setGroup(next) {
       stop();
+      completed = false;
       group = Math.min(Math.max(0, Number(next) || 0), groups.length - 1);
       index = 0;
       render();
@@ -183,6 +195,7 @@
 
     function restart() {
       stop();
+      completed = false;
       index = 0;
       render();
       toast("已回到本组第一题");
@@ -191,6 +204,7 @@
     // 数据或分组大小变化后重新分组。不传位置时保留原位置；分组大小变了则按绝对序号换算。
     function refresh(position = {}) {
       stop();
+      completed = false;
       const size = groupSize();
       let nextGroup = position.group ?? group;
       let nextIndex = position.index ?? index;

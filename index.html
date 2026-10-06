@@ -67,7 +67,10 @@
           </div>
           <label class="toggle-row"><span><strong>自动朗读</strong><small>切换单词时播放</small></span><input id="autoSpeak" type="checkbox"><i></i></label>
           <button class="shuffle-button" id="shuffleBtn" type="button">打乱顺序</button>
-          <button class="nav-button" id="reviewBtn" type="button">复习收藏词</button>
+          <button class="nav-button" id="reviewBtn" type="button">全部收藏</button>
+          <button class="nav-button" id="unitReviewBtn" type="button">本单元收藏</button>
+          <button class="nav-button" id="mistakeReviewBtn" type="button">错词复习</button>
+          <button class="nav-button" id="exitReviewBtn" type="button" hidden>返回单元学习</button>
         </aside>
 
         <div class="flashcard-stage">
@@ -118,7 +121,7 @@
           </div>
         </div>
         <div class="flashcard-stage dictation-stage">
-          <div class="card-counter dictation-meta"><strong id="dictationGroupLabel">第 1 组</strong><span><i id="dictationStatus"></i><b id="dictationPosition">1 / 5</b><button class="dictation-restart-btn" id="dictationRestartBtn" type="button" title="重来本组" aria-label="重来本组">↺</button></span></div>
+          <div class="card-counter dictation-meta"><strong id="dictationGroupLabel">第 1 组</strong><span><i id="dictationStatus" role="status" aria-live="polite"></i><b id="dictationPosition">1 / 5</b><button class="dictation-restart-btn" id="dictationRestartBtn" type="button" title="重来本组" aria-label="重来本组">↺</button></span></div>
           <div class="dictation-progress" id="dictationProgress" aria-hidden="true"></div>
 
           <article class="flashcard dictation-flashcard" id="dictationFlashcard" tabindex="0" aria-label="中文题目，点击卡片查看英文" title="点击卡片翻转（空格）">

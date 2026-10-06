@@ -4,6 +4,27 @@
 
   // 单词页与知识清单页共用同一个 key：口音、语速跨页面生效，页面各自的字段用前缀区分。
   const SETTINGS_KEY = "word-island-settings";
+  const memory = new Map();
+  let storageFailed = false;
+  function readData(key, fallback) {
+    try {
+      const raw = memory.has(key) ? memory.get(key) : localStorage.getItem(key);
+      return raw === null ? fallback : JSON.parse(raw);
+    } catch (error) {
+      storageFailed = true;
+      return fallback;
+    }
+  }
+  function writeData(key, value) {
+    const raw = JSON.stringify(value);
+    try {
+      localStorage.setItem(key, raw);
+      memory.delete(key);
+    } catch (error) {
+      memory.set(key, raw);
+      storageFailed = true;
+    }
+  }
   const supported = "speechSynthesis" in window;
   // iOS 和 Edge 统一人名读音；iPadOS 桌面模式按触控点数识别。
   const useChineseName = /iPhone|iPad|iPod/.test(navigator.userAgent)
@@ -12,7 +33,8 @@
 
   function loadSettings() {
     try {
-      return JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") || {};
+      const value = readData(SETTINGS_KEY, {});
+      return value && typeof value === "object" && !Array.isArray(value) ? value : {};
     } catch (error) {
       console.error(error);
       return {};
@@ -23,7 +45,7 @@
   function saveSettings(patch) {
     const next = { ...loadSettings(), ...patch };
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+      writeData(SETTINGS_KEY, next);
     } catch (error) {
       console.error(error);
     }
@@ -112,5 +134,5 @@
   }
   const speakChinese = text => speak(text, { lang: "zh-CN", rate: 0.78 });
 
-  window.Speech = { supported, loadSettings, saveSettings, findVoice, cancel, speak, speakEnglish, speakChinese, readableEnglish };
+  window.Speech = { readData, writeData, get storageFailed() { return storageFailed; }, supported, loadSettings, saveSettings, findVoice, cancel, speak, speakEnglish, speakChinese, readableEnglish };
 })();
