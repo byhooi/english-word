@@ -10,6 +10,12 @@
 - `styles.css`：公共及打印样式；`zs.css`：知识清单专属样式；`logo*`、`zs-logo*`：页面图标。
 - `words.js`：单词数据；`generate_zs_data.py`：知识清单数据源及生成器；`zs_data.js`：生成结果。
 
+## 部署与域名
+
+- 项目使用 GitHub Pages 部署，静态站点入口位于仓库根目录，无需新增构建步骤。
+- 自定义域名以根目录 `CNAME` 文件为准，当前为 `words.yangbing.eu.org`；该文件需纳入版本控制。
+- 修改域名时，同步更新 `index.html`、`zs.html` 中的分享链接与图片绝对地址，以及 `CLAUDE.md` 中的线上地址。
+
 ## 开发与检查命令
 
 在仓库根目录执行，预览需要 Python，语法检查需要 Node.js：

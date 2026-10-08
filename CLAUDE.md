@@ -11,6 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 线上地址：`https://words.yangbing.eu.org/`（知识清单页 `https://words.yangbing.eu.org/zs.html`）。
 
+项目使用 GitHub Pages 部署，静态站点入口位于仓库根目录，无需新增构建步骤。自定义域名以根目录 `CNAME` 文件为准，当前内容为 `words.yangbing.eu.org`，该文件需纳入版本控制。修改域名时，同步更新本文线上地址及 `index.html`、`zs.html` 中的分享链接与图片绝对地址。
+
 `_d_meta.json` 是设计资产元数据，除同步设计交付状态外不要手动修改。TTS 生成脚本和生成的音频放在独立的工具仓库，不进本仓库。
 
 本文件是仓库唯一的规范文档，结构或约定变化时同步更新它。
