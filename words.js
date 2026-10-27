@@ -12,7 +12,7 @@ window.WORD_UNITS = [
     ["mountain","山"],["cave","洞穴"],["waterfall","瀑布"],["hotel","酒店"],["holiday","假期",1],["will","将；将要",1],["soon","很快；马上"],["shall","（表示将来的可能性）将"],["high-speed train","高铁"],["explore","探索"],["pagoda","塔"],["stay","待；暂住"],["cave house","窑洞"],["famous","著名的",1],["deep-fried cake","油炸糕"],["wonderful","令人惊奇的；令人赞叹的",1],["view","景色；风景"],["It sounds great.","听起来很棒。"],["I can't wait to go!","我等不及要去了！"]
   ]},
   { id: "u5", label: "Unit 5", theme: "生命与成长", words: [
-    ["get sunlight","获取阳光"],["get food and water","获取食物和水"],["grow","生长"],["change","变化"],["move","移动",1],["living","有生命的"],["nonliving","无生命的"],["thing","东西"],["air","空气",1],["by themselves","独自地；无需外力地"],["important","重要的"],["by itself","独自地；无需外力地"],["look around","环顾"]
+    ["get sunlight","获取阳光"],["get food and water","获取食物和水"],["grow","生长"],["change","变化"],["move","移动",1],["living","有生命的"],["nonliving","无生命的"],["thing","东西"],["air","空气",1],["by themselves","独自地；无需外力地（它们）"],["important","重要的"],["by itself","独自地；无需外力地（它）"],["look around","环顾"]
   ]},
   { id: "u6", label: "Unit 6", theme: "保护环境", words: [
     ["smoke","烟"],["dirty","脏的",1],["rubbish","垃圾"],["recycle","回收利用"],["reduce","减少"],["natural resources","自然资源"],["call","把……叫做",1],["wood","木材"],["land","土地"],["why","为什么",1],["clean","干净的",1],["hurt","伤害",1],["factory","工厂"],["near","在……附近",1],["those","那些",1],["turn off","关掉"]
