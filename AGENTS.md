@@ -6,7 +6,7 @@
 
 - `index.html`、`app.js`：单词卡、测验、单词听写与词表。
 - `zs.html`、`zs_app.js`：短语和句型的知识清单听写。
-- `speech.js`、`flashcard.js`、`dictation.js`、`print.js`：共享语音、翻卡、听写与打印模块。
+- `speech.js`、`progress.js`、`flashcard.js`、`dictation.js`、`print.js`：共享语音与转义、单词页进度规则、翻卡、听写与打印模块。
 - `styles.css`：公共及打印样式；`zs.css`：知识清单专属样式；`logo*`、`zs-logo*`：页面图标。
 - `words.js`：单词数据；`generate_zs_data.py`：知识清单数据源及生成器；`zs_data.js`：生成结果。
 
@@ -35,11 +35,11 @@ git diff --check
 - JavaScript 使用两空格缩进、`const`/`let` 和分号；DOM id 使用 camelCase，例如 `dictationAutoBtn`。
 - HTML 使用语义化标签和双引号属性；CSS 类名使用 kebab-case，优先复用 `:root` 变量；Python 保持四空格缩进。
 - 没有配置格式化器或 lint 工具，保持周边代码风格。对话与说明文档使用中文。
-- 保持脚本加载顺序：数据、语音、翻卡、听写、打印、页面逻辑。复用 `createDictation`，不要另写播报流程；异步修改须保留取消令牌检查。
+- 保持脚本加载顺序：数据、语音、进度规则、翻卡、听写、打印、页面逻辑。复用 `createDictation`，不要另写播报流程；异步修改须保留取消令牌检查。拼进 `innerHTML` 的数据一律先过 `Speech.escapeHtml`。
 
 ## 测试要求
 
-使用 `node scripts/check.cjs` 运行无第三方依赖的语法、数据、存储与听写边界检查；没有覆盖率门槛。提交前完成语法检查，并在桌面和窄屏浏览器验证两个入口：单元切换、翻卡、发音、收藏、测验、搜索及刷新后的状态恢复。
+使用 `node scripts/check.cjs` 运行无第三方依赖的语法、数据、释义去重、HTML 转义、进度规则与听写边界检查；没有覆盖率门槛。提交前完成语法检查，并在桌面和窄屏浏览器验证两个入口：单元切换、翻卡、发音、收藏、测验、搜索及刷新后的状态恢复。
 
 听写改动需检查分组边界、每题重复两遍、等待间隔、暂停、重听和答案揭晓；打印改动需确认每单元分页且不泄露英文答案。词库改动需核对条目总数和分组。
 

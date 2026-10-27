@@ -25,7 +25,7 @@ python -m http.server 4311
 # 访问 http://localhost:4311/ 和 http://localhost:4311/zs.html
 
 # 提交前语法与空白检查（Windows PowerShell 5.1 不支持 &&，用分号）
-node --check app.js; node --check zs_app.js; node --check speech.js; node --check dictation.js; node --check print.js; node --check flashcard.js; node --check words.js; node --check zs_data.js
+node --check app.js; node --check zs_app.js; node --check speech.js; node --check dictation.js; node --check print.js; node --check flashcard.js; node --check progress.js; node --check words.js; node --check zs_data.js
 git diff --check
 
 # 修改知识清单数据：改 generate_zs_data.py 里的 data 列表，再重新生成 zs_data.js（不要手改 zs_data.js）
@@ -35,7 +35,7 @@ python generate_zs_data.py
 & "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --disable-gpu --virtual-time-budget=3000 --dump-dom "file:///D:/Documents/Github/english-word/zs.html"
 ```
 
-运行 `node scripts/check.cjs` 检查语法、数据 ID、存储降级和听写边界；完整交互仍需浏览器手动验收：
+运行 `node scripts/check.cjs` 检查语法、数据 ID、释义去重、HTML 转义、进度规则与听写边界；完整交互仍需浏览器手动验收：
 
 - 每次改动：桌面和窄屏两种宽度下的单元切换、翻卡、发音、收藏、测验、搜索、`localStorage` 恢复。
 - 改听写：两个页面都要查分组数量、每题播两遍、间隔设置、开始/暂停、组尾停止、重听、重来本组、答案揭晓。
@@ -49,10 +49,11 @@ python generate_zs_data.py
 所有脚本是 IIFE，通过 `window.*` 暴露，`<script>` 顺序即依赖顺序：
 
 ```
-数据(words.js / zs_data.js) → speech.js → flashcard.js → dictation.js → print.js → 页面脚本(app.js / zs_app.js)
+数据(words.js / zs_data.js) → speech.js → progress.js → flashcard.js → dictation.js → print.js → 页面脚本(app.js / zs_app.js)
 ```
 
-- `speech.js` 暴露 `window.Speech`：浏览器 `speechSynthesis` 封装 + 设置读写。`speak*` 返回 Promise，读完 resolve(true)，被打断 resolve(false)，听写引擎依赖这一点判断是否继续。英文朗读统一走 `Speech.speakEnglish`，它会把 `...` 替换成 something 再读。
+- `speech.js` 暴露 `window.Speech`：浏览器 `speechSynthesis` 封装 + 设置读写 + 共享的 `escapeHtml`。`speak*` 返回 Promise，读完 resolve(true)，被打断 resolve(false)，听写引擎依赖这一点判断是否继续。英文朗读统一走 `Speech.speakEnglish`，它会把 `...` 替换成 something 再读。**所有拼进 `innerHTML` 的数据都要先过 `Speech.escapeHtml`。**
+- `progress.js` 暴露 `window.Progress`：单词页的纯业务规则（旧 ID 迁移、收藏/掌握/错词变更、三选一选项生成与判题），不碰 DOM，页面与 `scripts/check.cjs` 共用同一份实现。
 - `flashcard.js` 暴露 `window.createFlashcard(cardEl, {frontLabel, backLabel})`：翻卡的 class/aria/inert 切换，返回 `{toggle, reset}`。
 - `dictation.js` 暴露 `window.createDictation(options)`：两个页面共用的纸上听写引擎。按固定 DOM id（`dictation*`）绑定元素和按钮事件；页面只提供 `getItems`、`getGroupSize`、`getRepeatDelay`、`getNextDelay(item)`、`speakChinese`、`speakEnglish`、`toast`、`onRender`、`onPositionChange`。返回 `{refresh, render, stop, start, repeat, move, restart, setGroup, handleKeydown, ...}`。**不要在页面脚本里再写一套播报流程。**
 - `print.js` 暴露 `window.printAnswerSheet(pages)`：把 `[{title, subtitle?, sections:[{heading, items:[{zh}], columns}]}]` 渲染进 `#printSheet` 并调用 `window.print()`。
@@ -75,7 +76,7 @@ python generate_zs_data.py
 
 ### 数据形状
 
-- `words.js`：`WORD_UNITS[]`，Unit 1–8 加「专有名词」。每词 `[en, zh, star?]` 经 `.map` 变成 `{id, en, zh, star}`，`id` 由单元 id 加英文 slug 生成。收藏/已掌握按 `id` 存，所以改单词拼写会换 id、丢掉该词进度，同一单元内 slug 也不能重复。`app.js` 里有旧「单元-序号」id 的迁移映射。
+- `words.js`：`WORD_UNITS[]`，Unit 1–8 加「专有名词」。每词 `[en, zh, star?]` 经 `.map` 变成 `{id, en, zh, star}`，`id` 由单元 id 加英文 slug 生成。收藏/已掌握按 `id` 存，所以改单词拼写会换 id、丢掉该词进度，同一单元内 slug 也不能重复，**同一单元内中文释义也必须唯一**（三选一会出现两个相同选项），`check.cjs` 会校验。旧「单元-序号」id 的迁移映射在 `progress.js`。
 - `zs_data.js`：`ZS_UNITS[]`（`{id,label,title,theme,phrases[],sentences[]}`，条目为 `{en, zh}`）加展平的 `ZS_DATA[]`（每项带 `unitId`、`type: phrase|sentence`、`typeName`）。听写用 `ZS_DATA`，清单一览和打印用 `ZS_UNITS`。
 
 ### localStorage

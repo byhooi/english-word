@@ -64,9 +64,8 @@
     toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
   }
 
-  function escapeHtml(str) {
-    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  // 共享的 HTML 转义，避免数据里的特殊字符破坏列表结构。
+  const escapeHtml = Speech.escapeHtml;
 
   // 下拉框没有对应选项时回退到默认值，避免显示空白
   function setSelect(select, value, fallback) {
@@ -215,7 +214,7 @@
 
   function initUnitTabs() {
     const tabs = $("#unitTabs");
-    const tab = (id, label) => `<button class="unit-tab ${currentUnit === id ? "active" : ""}" data-unit="${id}" type="button">${label}</button>`;
+    const tab = (id, label) => `<button class="unit-tab ${currentUnit === id ? "active" : ""}" data-unit="${escapeHtml(id)}" type="button">${escapeHtml(label)}</button>`;
     tabs.innerHTML = tab("all", "全部单元") + UNITS.map(u => tab(u.id, u.label)).join("");
     tabs.addEventListener("click", e => {
       const btn = e.target.closest("[data-unit]");

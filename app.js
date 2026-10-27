@@ -3,13 +3,9 @@
   const units = window.WORD_UNITS;
   const allWords = units.flatMap(unit => unit.words.map(word => ({...word, unitId: unit.id, unitLabel: unit.label})));
   const validIds = new Set(allWords.map(word => word.id));
-  // 旧版进度用"单元-序号"作 ID，按位置映射到新的"单元-英文"ID，无法识别的脏数据直接丢弃
-  const legacyIdMap = new Map();
-  units.forEach(unit => unit.words.forEach((word, wordIndex) => legacyIdMap.set(`${unit.id}-${wordIndex}`, word.id)));
-  const loadIds = key => {
-    const value = Speech.readData(key, []);
-    return (Array.isArray(value) ? value : []).map(id => legacyIdMap.get(id) || id).filter(id => validIds.has(id));
-  };
+  const Progress = window.Progress;
+  const legacyIdMap = Progress.buildLegacyIdMap(units);
+  const loadIds = key => Progress.normalizeIds(Speech.readData(key, []), { legacyIdMap, validIds });
   const saved = new Set(loadIds("word-island-saved"));
   const mastered = new Set(loadIds("word-island-mastered"));
   const mistakes = new Set(loadIds("word-island-mistakes"));
@@ -51,7 +47,7 @@
   }
 
   function renderTabs() {
-    $("#unitTabs").innerHTML = units.map(u => `<button class="unit-tab ${u.id === unitId ? "active" : ""}" data-unit="${u.id}" role="tab" aria-selected="${u.id === unitId}">${u.label}</button>`).join("");
+    $("#unitTabs").innerHTML = units.map(u => `<button class="unit-tab ${u.id === unitId ? "active" : ""}" data-unit="${Speech.escapeHtml(u.id)}" role="tab" aria-selected="${u.id === unitId}">${Speech.escapeHtml(u.label)}</button>`).join("");
   }
 
   function renderCard(announce = false) {
@@ -125,23 +121,19 @@
     $("#quizPromptLabel").textContent = `第 ${quizTotal - quizQueue.length} / ${quizTotal} 题：请选择正确的中文意思`;
     $("#quizNextBtn").textContent = "下一题";
     // 按中文释义去重，避免出现两个选项释义相同（如 by themselves / by itself）
-    const usedMeanings = new Set([quizWord.zh]); const distractors = [];
-    for (const w of shuffle(allWords)) {
-      if (usedMeanings.has(w.zh)) continue;
-      usedMeanings.add(w.zh); distractors.push(w);
-      if (distractors.length === 2) break;
-    }
-    const answers = shuffle([quizWord, ...distractors]);
+    const answers = Progress.buildAnswers({ word: quizWord, allWords, shuffle });
     $("#quizWord").textContent = quizWord.en; $("#quizFeedback").textContent = ""; $("#quizNextBtn").classList.remove("show");
-    $("#answerGrid").innerHTML = answers.map(w => `<button class="answer-button" data-id="${w.id}">${w.zh}</button>`).join("");
+    $("#answerGrid").innerHTML = answers.map(w => `<button class="answer-button" data-id="${Speech.escapeHtml(w.id)}">${Speech.escapeHtml(w.zh)}</button>`).join("");
   }
 
   function answerQuiz(button) {
-    if (answered) return; answered = true; const correct = button.dataset.id === quizWord.id;
+    if (answered) return; answered = true; const correct = Progress.isCorrectAnswer({ pickedId: button.dataset.id, word: quizWord });
     $$(".answer-button").forEach(b => { if (b.dataset.id === quizWord.id) b.classList.add("correct"); });
     if (!correct) button.classList.add("wrong");
     quizScore = correct ? quizScore + 1 : 0; $("#quizScore").textContent = quizScore;
-    if (correct) quizCorrect += 1; else { mistakes.add(quizWord.id); mastered.delete(quizWord.id); }
+    // 答对只计分，不自动标记掌握；答错记入错词并撤销已掌握。
+    if (correct) quizCorrect += 1;
+    Progress.applyQuizAnswer({ correct, wordId: quizWord.id, mistakes, mastered });
     persist(); renderStats();
     $("#quizFeedback").textContent = correct ? `答对了！${quizWord.en} 就是“${quizWord.zh}”。` : `再记一次：${quizWord.en} — ${quizWord.zh}，已加入错词复习。`;
     if (!quizQueue.length) {
@@ -156,7 +148,7 @@
     const query = ($("#searchInput")?.value || "").trim().toLowerCase();
     const filtered = unit().words.filter(w => !query || w.en.toLowerCase().includes(query) || w.zh.includes(query));
     $("#listTitle").textContent = `${unit().label} 全部单词`;
-    $("#wordGrid").innerHTML = filtered.map(w => `<article class="word-row"><div><strong lang="en">${w.star ? "★ " : ""}${w.en}</strong><span>${w.zh}</span></div><button type="button" data-speak="${encodeURIComponent(w.en)}" aria-label="朗读 ${w.en}">▶</button></article>`).join("") || "<p>没有找到匹配的单词。</p>";
+    $("#wordGrid").innerHTML = filtered.map(w => `<article class="word-row"><div><strong lang="en">${w.star ? "★ " : ""}${Speech.escapeHtml(w.en)}</strong><span>${Speech.escapeHtml(w.zh)}</span></div><button type="button" data-speak="${Speech.escapeHtml(encodeURIComponent(w.en))}" aria-label="朗读 ${Speech.escapeHtml(w.en)}">▶</button></article>`).join("") || "<p>没有找到匹配的单词。</p>";
   }
 
   // 单元听写：当前单元的完整词表按原顺序固定每 5 个一组，不受翻卡顺序影响。
@@ -181,8 +173,8 @@
   $("#prevBtn").addEventListener("click", () => move(-1)); $("#nextBtn").addEventListener("click", () => move(1));
   $("#speakBtn").addEventListener("click", () => speak(current().en)); $("#slowSpeakBtn").addEventListener("click", () => speak(current().en, true));
   $("#cardSpeakBtn").addEventListener("click", e => { e.stopPropagation(); speak(current().en); }); $("#exampleSpeakBtn").addEventListener("click", e => { e.stopPropagation(); speak(current().en); });
-  $("#saveBtn").addEventListener("click", e => { e.stopPropagation(); const id = current().id; saved.has(id) ? saved.delete(id) : saved.add(id); persist(); renderCard(); toast(saved.has(id) ? "已加入收藏词" : "已取消收藏"); });
-  $("#masterBtn").addEventListener("click", () => { const id = current().id; mastered.has(id) ? mastered.delete(id) : mastered.add(id); if (mastered.has(id)) mistakes.delete(id); cancelAdvance(); persist(); renderCard(); if (mastered.has(id)) { toast("记住啦，探险船前进了一步！"); cancelAdvance();
+  $("#saveBtn").addEventListener("click", e => { e.stopPropagation(); const id = current().id; const { nowSaved } = Progress.toggleSaved({ wordId: id, saved }); persist(); renderCard(); toast(nowSaved ? "已加入收藏词" : "已取消收藏"); });
+  $("#masterBtn").addEventListener("click", () => { const id = current().id; const { nowMastered } = Progress.toggleMastered({ wordId: id, mastered, mistakes }); cancelAdvance(); persist(); renderCard(); if (nowMastered) { toast("记住啦，探险船前进了一步！");
       const expectedId = id, expectedUnit = unitId;
       advanceTimer = setTimeout(() => {
         if (mode === "learn" && unitId === expectedUnit && current()?.id === expectedId && mastered.has(id)) move(1);

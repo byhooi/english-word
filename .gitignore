@@ -2,3 +2,10 @@
 *_d.png
 .DS_Store
 Thumbs.db
+
+# 本地编辑器与工具的个人配置，不随仓库分发
+.claude/settings.local.json
+.vscode/settings.json
+
+# 已删除的站点验证串，保留忽略规则以防再次生成
+cd31283e983af67990fe781eee113727.txt

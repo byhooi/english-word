@@ -2,7 +2,8 @@
 (() => {
   "use strict";
 
-  const escapeHtml = str => String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  // 共享的 HTML 转义，答题纸里的中文提示同样可能含有特殊字符。
+  const escapeHtml = str => window.Speech.escapeHtml(str);
   const NUMBERS = ["一", "二", "三", "四"];
 
   // pages: [{ title, subtitle?, note?, sections: [{ heading, items: [{ zh }], columns?: 1 | 2, roomy?: boolean }] }]

@@ -60,6 +60,11 @@
     speechSynthesis.onvoiceschanged = refreshVoices;
   }
 
+  // 两个页面共用：拼接到 innerHTML 的文本一律先转义，避免数据里的 < > & " 破坏结构。
+  const escapeHtml = str => String(str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
   const normalizeLang = lang => String(lang || "").toLowerCase().replace("_", "-");
 
   function findVoice(language) {
@@ -134,5 +139,5 @@
   }
   const speakChinese = text => speak(text, { lang: "zh-CN", rate: 0.78 });
 
-  window.Speech = { readData, writeData, get storageFailed() { return storageFailed; }, supported, loadSettings, saveSettings, findVoice, cancel, speak, speakEnglish, speakChinese, readableEnglish };
+  window.Speech = { readData, writeData, get storageFailed() { return storageFailed; }, supported, escapeHtml, loadSettings, saveSettings, findVoice, cancel, speak, speakEnglish, speakChinese, readableEnglish };
 })();
