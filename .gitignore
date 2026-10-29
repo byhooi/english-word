@@ -12,3 +12,9 @@ Thumbs.db
 
 # 已删除的站点验证串，保留忽略规则以防再次生成
 cd31283e983af67990fe781eee113727.txt
+
+# AI 助手说明文件（本地使用，不纳入版本控制）
+CLAUDE.md
+claude.md
+AGENTS.md
+agents.md
